@@ -26,6 +26,9 @@ function fzfOutput(output, args)
     output = strings.TrimSpace(output)
     if output ~= "" then
         local bftype = config.GetGlobalOption("openbftype")
+        if bftype == nil or bftype == "" then
+            bftype = config.GetGlobalOption("fzf.openbftype")
+        end
         if bftype == "tab" and bp.Buf.Path ~= "" then
             bp:HandleCommand('tab "' .. output .. '"')
         else
@@ -35,6 +38,6 @@ function fzfOutput(output, args)
 end
 
 function init()
-    config.RegisterGlobalOption("openbftype", "tab")
+    config.RegisterGlobalOption("fzf", "openbftype", "tab")
     config.MakeCommand("fzf", fzf, config.NoComplete)
 end

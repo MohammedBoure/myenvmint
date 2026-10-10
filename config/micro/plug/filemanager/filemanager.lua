@@ -538,6 +538,9 @@ local function try_open_at_y(y)
 			if other_pane ~= nil then
 				close_tree()
 				local bftype = config.GetGlobalOption("openbftype")
+				if bftype == nil or bftype == "" then
+					bftype = config.GetGlobalOption("filemanager.openbftype")
+				end
 				if bftype == "tab" and other_pane.Buf.Path ~= "" then
 					other_pane:HandleCommand('tab "' .. target_path .. '"')
 				else
@@ -545,6 +548,9 @@ local function try_open_at_y(y)
 				end
 			else
 				local bftype = config.GetGlobalOption("openbftype")
+				if bftype == nil or bftype == "" then
+					bftype = config.GetGlobalOption("filemanager.openbftype")
+				end
 				if bftype == "tab" then
 					micro.CurPane():HandleCommand('tab "' .. target_path .. '"')
 					close_tree()
@@ -1385,7 +1391,7 @@ function init()
     config.RegisterCommonOption("filemanager", "openonstart", false)
 
     -- Option to control buffer opening behavior (tab vs open/buffer)
-    config.RegisterGlobalOption("openbftype", "tab")
+    config.RegisterGlobalOption("filemanager", "openbftype", "tab")
 
     -- Open/close the tree view
     config.MakeCommand("tree", toggle_tree, config.NoComplete)
