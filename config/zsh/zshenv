@@ -1,0 +1,2 @@
+# Prevent global Ubuntu/Debian /etc/zsh/zshrc from running early compinit
+skip_global_compinit=1

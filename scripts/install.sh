@@ -50,6 +50,7 @@ fi
 # 6. Clone Zsh plugins if missing
 echo "==> Step 5: Setting up Zsh plugins..."
 mkdir -p "$HOME/.zsh"
+[ -d "$HOME/.zsh/zsh-autocomplete" ] || git clone --depth 1 https://github.com/marlonrichert/zsh-autocomplete.git "$HOME/.zsh/zsh-autocomplete"
 [ -d "$HOME/.zsh/zsh-autosuggestions" ] || git clone https://github.com/zsh-users/zsh-autosuggestions "$HOME/.zsh/zsh-autosuggestions"
 [ -d "$HOME/.zsh/zsh-syntax-highlighting" ] || git clone https://github.com/zsh-users/zsh-syntax-highlighting.git "$HOME/.zsh/zsh-syntax-highlighting"
 
@@ -95,9 +96,12 @@ chmod +x "$HOME/.config/polybar/scripts/"*.py
 # Picom
 cp "$SCRIPT_DIR/config/picom/picom.conf" "$HOME/.config/picom/picom.conf"
 
-# Starship & Zsh
+# Starship & Zsh & PowerShell
 cp "$SCRIPT_DIR/config/starship/starship.toml" "$HOME/.config/starship.toml"
 cp "$SCRIPT_DIR/config/zsh/zshrc" "$HOME/.zshrc"
+cp "$SCRIPT_DIR/config/zsh/zshenv" "$HOME/.zshenv" 2>/dev/null || true
+mkdir -p "$HOME/.config/powershell"
+cp "$SCRIPT_DIR/config/powershell/Microsoft.PowerShell_profile.ps1" "$HOME/.config/powershell/Microsoft.PowerShell_profile.ps1" 2>/dev/null || true
 
 # Micro Editor Config & Plugins
 cp "$SCRIPT_DIR/config/micro/bindings.json" "$HOME/.config/micro/bindings.json" 2>/dev/null || true
@@ -160,6 +164,10 @@ echo "==> Step 8: Applying system keyboard & desktop settings..."
 if [ -f "$SCRIPT_DIR/system/keyboard.conf" ]; then
     sudo cp "$SCRIPT_DIR/system/keyboard.conf" /etc/default/keyboard
     sudo udevadm trigger --subsystem-match=input 2>/dev/null || true
+fi
+if [ -f "$SCRIPT_DIR/system/99-no-sleep.conf" ]; then
+    sudo mkdir -p /etc/systemd/logind.conf.d
+    sudo cp "$SCRIPT_DIR/system/99-no-sleep.conf" /etc/systemd/logind.conf.d/99-no-sleep.conf
 fi
 
 # Apply XFCE desktop settings

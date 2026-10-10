@@ -15,3 +15,6 @@ This directory contains system-level configuration backups and templates applied
 
 - **`xfconf_shortcuts.txt`**:
   Text backup of active XFCE keyboard shortcuts.
+
+- **`99-no-sleep.conf`**:
+  Template for `/etc/systemd/logind.conf.d/99-no-sleep.conf`. Configures systemd-logind to ignore lid closing, suspend keys, hibernate keys, power buttons, and system idle triggers to keep the system awake 24/7.

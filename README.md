@@ -27,7 +27,10 @@ A comprehensive, fully tracked desktop configuration environment that implements
 │   ├── starship/                 # Terminal prompt styling engine
 │   │   └── starship.toml         # Custom Starship prompt configuration
 │   ├── zsh/                      # Zsh shell configuration
-│   │   └── zshrc                 # Enhanced ~/.zshrc with plugins and aliases
+│   │   ├── zshrc                 # Enhanced ~/.zshrc with real-time history autocomplete
+│   │   └── zshenv                # Early environment configuration for clean completion
+│   ├── powershell/               # Cross-platform PowerShell configuration
+│   │   └── Microsoft.PowerShell_profile.ps1 # PSReadLine ListView predictive history profile
 │   ├── micro/                    # Micro editor settings, bindings, and filemanager plugin
 │   ├── barrier/                  # Barrier KVM keyboard/mouse sharing client config
 │   ├── duckdns/                  # DuckDNS dynamic DNS configuration templates

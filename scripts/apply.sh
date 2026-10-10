@@ -24,9 +24,12 @@ chmod +x "$HOME/.config/polybar/scripts/"*.py
 # Copy Picom
 cp "$SCRIPT_DIR/config/picom/picom.conf" "$HOME/.config/picom/picom.conf"
 
-# Copy Starship & Zsh
+# Copy Starship & Zsh & PowerShell
 cp "$SCRIPT_DIR/config/starship/starship.toml" "$HOME/.config/starship.toml"
 cp "$SCRIPT_DIR/config/zsh/zshrc" "$HOME/.zshrc"
+cp "$SCRIPT_DIR/config/zsh/zshenv" "$HOME/.zshenv" 2>/dev/null || true
+mkdir -p "$HOME/.config/powershell"
+cp "$SCRIPT_DIR/config/powershell/Microsoft.PowerShell_profile.ps1" "$HOME/.config/powershell/Microsoft.PowerShell_profile.ps1" 2>/dev/null || true
 
 # Copy Micro Editor Config & Plugins
 mkdir -p "$HOME/.config/micro/plug"
