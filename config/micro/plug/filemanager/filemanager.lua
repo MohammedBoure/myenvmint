@@ -15,6 +15,16 @@ end
 
 -- Holds the micro.CurPane() we're manipulating
 local tree_view = nil
+
+-- close_tree will close the tree plugin view and release memory.
+local function close_tree()
+	if tree_view ~= nil then
+		tree_view:Quit()
+		tree_view = nil
+		clear_messenger()
+	end
+end
+
 -- Keeps track of the current working directory
 local current_dir = os.Getwd()
 -- Keep track of current highest visible indent to resize width appropriately
@@ -887,14 +897,6 @@ local function open_tree()
 	update_current_dir(os.Getwd())
 end
 
--- close_tree will close the tree plugin view and release memory.
-local function close_tree()
-	if tree_view ~= nil then
-		tree_view:Quit()
-		tree_view = nil
-		clear_messenger()
-	end
-end
 
 -- toggle_tree will toggle the tree view visible (create) and hide (delete).
 function toggle_tree()
