@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=autotile
+Comment=Dynamic X11 autotiling daemon for Cinnamon
+Exec=/usr/bin/python3 /home/pluto/.config/sxhkd/scripts/autotile.py
+Terminal=false
+Hidden=false
+NoDisplay=false
+X-GNOME-Autostart-enabled=true
+StartupNotify=false
+Categories=Utility;

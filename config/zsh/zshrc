@@ -1,0 +1,111 @@
+# ==============================================================================
+# Modern & Fast Zsh Configuration
+# Starship Prompt + zsh-autosuggestions + zsh-syntax-highlighting + fzf
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# 1. Environment & Path
+# ------------------------------------------------------------------------------
+export LANG="en_US.UTF-8"
+export LC_ALL="en_US.UTF-8"
+export EDITOR="xed"
+export VISUAL="xed"
+export PATH="$HOME/.local/bin:$PATH"
+
+# ------------------------------------------------------------------------------
+# 2. History Settings
+# ------------------------------------------------------------------------------
+HISTFILE="$HOME/.zsh_history"
+HISTSIZE=10000
+SAVEHIST=10000
+
+setopt EXTENDED_HISTORY          # Write the history file in the ':start:elapsed;command' format.
+setopt SHARE_HISTORY             # Share history between all sessions.
+setopt HIST_EXPIRE_DUPS_FIRST    # Expire duplicate entries first when trimming history.
+setopt HIST_IGNORE_DUPS          # Don't record an entry that was just recorded again.
+setopt HIST_IGNORE_ALL_DUPS      # Delete old duplicate entry if new entry is a duplicate.
+setopt HIST_FIND_NO_DUPS         # Do not display a line previously found.
+setopt HIST_IGNORE_SPACE         # Don't record an entry starting with a space.
+setopt HIST_SAVE_NO_DUPS         # Don't write duplicate entries in the history file.
+setopt HIST_REDUCE_BLANKS        # Remove superfluous blanks before recording entry.
+setopt HIST_VERIFY               # Don't execute immediately upon history expansion.
+
+# ------------------------------------------------------------------------------
+# 3. Completion System
+# ------------------------------------------------------------------------------
+autoload -Uz compinit
+compinit -d "$HOME/.zcompdump"
+
+zstyle ':completion:*' menu select
+zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}' # Case insensitive tab completion
+zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
+zstyle ':completion:*' rehash true
+
+# ------------------------------------------------------------------------------
+# 4. Key Bindings (Arrow Key Beginning History Search & Emacs Mode)
+# ------------------------------------------------------------------------------
+bindkey -e # Use emacs keybindings mode
+
+autoload -Uz up-line-or-beginning-search down-line-or-beginning-search
+zle -N up-line-or-beginning-search
+zle -N down-line-or-beginning-search
+
+# Arrow keys search prefix in history
+bindkey '^[[A' up-line-or-beginning-search
+bindkey '^[[B' down-line-or-beginning-search
+bindkey '^[OA' up-line-or-beginning-search
+bindkey '^[OB' down-line-or-beginning-search
+bindkey '^P' up-line-or-beginning-search
+bindkey '^N' down-line-or-beginning-search
+
+# Standard word navigation
+bindkey '^[[1;5C' forward-word
+bindkey '^[[1;5D' backward-word
+bindkey '^[[H' beginning-of-line
+bindkey '^[[F' end-of-line
+bindkey '^[[3~' delete-char
+
+# ------------------------------------------------------------------------------
+# 5. FZF Integration
+# ------------------------------------------------------------------------------
+if [ -f /usr/share/doc/fzf/examples/key-bindings.zsh ]; then
+    source /usr/share/doc/fzf/examples/key-bindings.zsh
+fi
+if [ -f /usr/share/doc/fzf/examples/completion.zsh ]; then
+    source /usr/share/doc/fzf/examples/completion.zsh
+fi
+
+# ------------------------------------------------------------------------------
+# 6. Plugins (Autosuggestions & Syntax Highlighting)
+# ------------------------------------------------------------------------------
+if [ -f "$HOME/.zsh/zsh-autosuggestions/zsh-autosuggestions.zsh" ]; then
+    source "$HOME/.zsh/zsh-autosuggestions/zsh-autosuggestions.zsh"
+    ZSH_AUTOSUGGEST_STRATEGY=(history completion)
+    ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=8'
+fi
+
+# Syntax Highlighting must be sourced at the end of plugins
+if [ -f "$HOME/.zsh/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" ]; then
+    source "$HOME/.zsh/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
+fi
+
+# ------------------------------------------------------------------------------
+# 7. Quality of Life Aliases
+# ------------------------------------------------------------------------------
+alias ls='ls --color=auto'
+alias ll='ls -lah --color=auto'
+alias la='ls -A --color=auto'
+alias l='ls -CF --color=auto'
+alias grep='grep --color=auto'
+alias fgrep='fgrep --color=auto'
+alias egrep='egrep --color=auto'
+alias df='df -h'
+alias free='free -m'
+
+# ------------------------------------------------------------------------------
+# 8. Starship Prompt Initialization
+# ------------------------------------------------------------------------------
+if command -v starship >/dev/null 2>&1; then
+    eval "$(starship init zsh)"
+fi
+export EDITOR=micro

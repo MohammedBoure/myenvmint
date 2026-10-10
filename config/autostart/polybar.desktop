@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Polybar
+Comment=Polybar top status bar
+Exec=/bin/bash /home/pluto/.config/polybar/launch.sh
+Terminal=false
+Hidden=false
+NoDisplay=false
+X-GNOME-Autostart-enabled=true
+StartupNotify=false
+Categories=Utility;

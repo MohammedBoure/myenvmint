@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=sxhkd
+Comment=Simple X Hotkey Daemon for GlazeWM keybindings
+Exec=/usr/bin/sxhkd -c /home/pluto/.config/sxhkd/sxhkdrc
+Terminal=false
+Hidden=false
+NoDisplay=false
+X-GNOME-Autostart-enabled=true
+StartupNotify=false
+Categories=Utility;

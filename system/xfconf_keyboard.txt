@@ -1,0 +1,4 @@
+/Default/XkbDisable        false
+/Default/XkbLayout         fr,ara
+/Default/XkbOptions/Group  grp:win_space_toggle
+/Default/XkbVariant        azerty,

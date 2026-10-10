@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Picom X11 Compositor
+Comment=Lightweight X11 Compositor for Smooth Window Animations
+Exec=picom -b --config /home/pluto/.config/picom/picom.conf
+Hidden=false
+NoDisplay=false
+X-GNOME-Autostart-enabled=true

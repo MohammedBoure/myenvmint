@@ -1,0 +1,12 @@
+{
+    "Ctrl-b": "command:tree",
+    "CtrlLeft": "WordLeft",
+    "CtrlRight": "WordRight",
+    "Ctrl-h": "DeleteWordLeft",
+    "Ctrl-w": "DeleteWordLeft",
+    "Alt-Left": "WordLeft",
+    "Alt-Right": "WordRight",
+    "Alt-Backspace": "DeleteWordLeft",
+    "\u001b[1;5D": "WordLeft",
+    "\u001b[1;5C": "WordRight"
+}

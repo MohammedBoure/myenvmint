@@ -1,0 +1,91 @@
+# ==============================================================================
+# GlazeWM-style keybindings for Linux Mint / Cinnamon (via sxhkd)
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# 1. Directional Window Navigation (with fallback to window cycling)
+# ------------------------------------------------------------------------------
+alt + {h,Left}
+    $HOME/.config/sxhkd/scripts/focus.py left
+
+alt + {j,Down}
+    $HOME/.config/sxhkd/scripts/focus.py down
+
+alt + {k,Up}
+    $HOME/.config/sxhkd/scripts/focus.py up
+
+alt + {l,Right}
+    $HOME/.config/sxhkd/scripts/focus.py right
+
+# ------------------------------------------------------------------------------
+# 2. Window Geometry & Sizing (GlazeWM replication)
+# ------------------------------------------------------------------------------
+# Decrease active window width by 2%
+alt + u
+    $HOME/.config/sxhkd/scripts/window_manage.py resize_w_dec
+
+# Increase active window width by 2%
+alt + p
+    $HOME/.config/sxhkd/scripts/window_manage.py resize_w_inc
+
+# Decrease active window height by 2%
+alt + i
+    $HOME/.config/sxhkd/scripts/window_manage.py resize_h_dec
+
+# Increase active window height by 2%
+alt + o
+    $HOME/.config/sxhkd/scripts/window_manage.py resize_h_inc
+
+# ------------------------------------------------------------------------------
+# 3. Window State Management
+# ------------------------------------------------------------------------------
+# Close active window
+alt + q
+    wmctrl -c :ACTIVE:
+
+# Toggle fullscreen
+alt + f
+    wmctrl -r :ACTIVE: -b toggle,fullscreen
+
+# Minimize active window
+alt + m
+    xdotool getactivewindow windowminimize
+
+# Center active window as floating
+alt + shift + space
+    $HOME/.config/sxhkd/scripts/window_manage.py center
+
+# ------------------------------------------------------------------------------
+# 4. Workspace Management (Workspaces 1 to 10)
+# ------------------------------------------------------------------------------
+# Switch to workspace index 0 to 9:
+alt + {1,2,3,4,5,6,7,8,9,0}
+    wmctrl -s {0,1,2,3,4,5,6,7,8,9}
+
+# Send active window to workspace index 0 to 9:
+alt + shift + {1,2,3,4,5,6,7,8,9,0}
+    wmctrl -r :ACTIVE: -t {0,1,2,3,4,5,6,7,8,9}
+
+# AZERTY unshifted top-row keys for direct switching without Shift:
+alt + {ampersand,eacute,quotedbl,apostrophe,parenleft,minus,egrave,underscore,ccedilla,agrave}
+    wmctrl -s {0,1,2,3,4,5,6,7,8,9}
+
+# AZERTY shifted top-row keys for sending active window to workspace:
+alt + shift + {ampersand,eacute,quotedbl,apostrophe,parenleft,minus,egrave,underscore,ccedilla,agrave}
+    wmctrl -r :ACTIVE: -t {0,1,2,3,4,5,6,7,8,9}
+
+
+# ------------------------------------------------------------------------------
+# 5. Application Launchers
+# ------------------------------------------------------------------------------
+# Launch terminal
+alt + control + Return
+    x-terminal-emulator
+
+# Launch default text editor
+alt + n
+    xed
+
+# Open terminal in current directory of Nemo or home
+alt + control + t
+    $HOME/.config/sxhkd/scripts/open_terminal.py

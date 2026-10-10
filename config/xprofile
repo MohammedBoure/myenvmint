@@ -1,0 +1,3 @@
+#!/bin/sh
+# Execute master desktop initialization orchestrator
+/bin/bash /home/pluto/.config/myenvmint/init-desktop.sh &

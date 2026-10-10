@@ -1,0 +1,13 @@
+{
+  "agentMode": "accept-edits",
+  "artifactReviewPolicy": "always-proceed",
+  "colorScheme": "tokyo night",
+  "editor": "vim",
+  "editorMode": "vim",
+  "runningLightSpeed": "fast",
+  "toolPermission": "always-proceed",
+  "trustedWorkspaces": [
+    "/home/pluto",
+    "/home/pluto/Desktop/myenvmint"
+  ]
+}
