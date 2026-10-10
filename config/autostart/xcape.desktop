@@ -1,8 +1,0 @@
-[Desktop Entry]
-Type=Application
-Name=xcape Dual-Role Super Key
-Comment=Makes standalone tap of Super open the menu while preserving Super key combos
-Exec=sh -c "killall xcape 2>/dev/null; sleep 1; xcape -e 'Super_L=Super_L|F1'"
-Hidden=false
-NoDisplay=false
-X-GNOME-Autostart-enabled=true

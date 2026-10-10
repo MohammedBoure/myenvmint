@@ -72,6 +72,27 @@ def center_window():
 
 import time
 
+def get_client_leader(wid):
+    if not wid or wid <= 0:
+        return None
+    try:
+        import Xlib.display
+        disp = Xlib.display.Display()
+        root = disp.screen().root
+        w = disp.create_resource_object('window', wid)
+        while w and w.id != root.id:
+            atom_state = disp.intern_atom('WM_STATE')
+            prop = w.get_full_property(atom_state, 0)
+            if prop is not None:
+                return w.id
+            parent = w.query_tree().parent
+            if parent.id == root.id:
+                return w.id
+            w = parent
+    except Exception:
+        pass
+    return wid
+
 def is_valid_client_window(wid):
     if not wid or wid <= 0:
         return False
@@ -87,7 +108,7 @@ def is_valid_client_window(wid):
         ]):
             return False
     except Exception:
-        return False
+        pass
     try:
         wstate = subprocess.check_output(['xprop', '-id', hex_id, '_NET_WM_STATE'], stderr=subprocess.DEVNULL).decode()
         if '_NET_WM_STATE_STICKY' in wstate:
@@ -115,8 +136,9 @@ def get_target_window():
     try:
         out = subprocess.check_output(['xdotool', 'getactivewindow'], stderr=subprocess.DEVNULL).decode().strip()
         wid = int(out)
-        if wid > 0 and is_valid_client_window(wid):
-            return wid
+        leader = get_client_leader(wid)
+        if leader and is_valid_client_window(leader):
+            return leader
     except Exception:
         pass
 
@@ -126,19 +148,21 @@ def get_target_window():
         for token in out.split():
             if token.startswith('0x'):
                 wid = int(token.rstrip(','), 16)
-                if wid > 0 and is_valid_client_window(wid):
-                    return wid
+                leader = get_client_leader(wid)
+                if leader and is_valid_client_window(leader):
+                    return leader
     except Exception:
         pass
 
-    # 3. Try window under mouse pointer
+    # 3. Try window under mouse pointer (hovered window without needing manual click/focus)
     try:
         out = subprocess.check_output(['xdotool', 'getmouselocation', '--shell'], stderr=subprocess.DEVNULL).decode()
         for line in out.splitlines():
             if line.startswith('WINDOW='):
                 wid = int(line.split('=')[1])
-                if wid > 0 and is_valid_client_window(wid):
-                    return wid
+                leader = get_client_leader(wid)
+                if leader and is_valid_client_window(leader):
+                    return leader
     except Exception:
         pass
 

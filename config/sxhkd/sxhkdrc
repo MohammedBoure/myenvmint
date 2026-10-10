@@ -59,6 +59,7 @@ alt + shift + space
 # 4. Workspace Management (Workspaces 1 to 10)
 # ------------------------------------------------------------------------------
 # Switch to workspace index 0 to 9 (Alt or Super):
+# Standard / Arabic unshifted numbers:
 {alt,super} + {1,2,3,4,5,6,7,8,9,0}
     $HOME/.config/sxhkd/scripts/window_manage.py switch {0,1,2,3,4,5,6,7,8,9}
 
@@ -70,17 +71,14 @@ alt + shift + space
 {alt,super} + {KP_1,KP_2,KP_3,KP_4,KP_5,KP_6,KP_7,KP_8,KP_9,KP_0}
     $HOME/.config/sxhkd/scripts/window_manage.py switch {0,1,2,3,4,5,6,7,8,9}
 
-# Move active window to workspace index 0 to 9 and switch to it (Alt+Shift or Super+Shift):
+# Move active window to workspace index 0 to 9 and switch to it:
+# Top row numbers (on AZERTY, Shift + keycode 10-19 produces 1,2,3,4,5,6,7,8,9,0):
 {alt,super} + shift + {1,2,3,4,5,6,7,8,9,0}
     $HOME/.config/sxhkd/scripts/window_manage.py move {0,1,2,3,4,5,6,7,8,9}
 
-# AZERTY shifted top-row keys for moving active window to workspace:
-{alt,super} + shift + {ampersand,eacute,quotedbl,apostrophe,parenleft,minus,egrave,underscore,ccedilla,agrave}
-    $HOME/.config/sxhkd/scripts/window_manage.py move {0,1,2,3,4,5,6,7,8,9}
-
 # Arabic layout shifted keys for moving active window to workspace:
-{alt,super} + shift + {exclam,at,numbersign,dollar,percent,asciicircum,asterisk,parenright,parenleft}
-    $HOME/.config/sxhkd/scripts/window_manage.py move {0,1,2,3,4,5,7,8,9}
+{alt,super} + shift + {exclam,at,numbersign,dollar,percent,asciicircum,ampersand,asterisk,parenright,parenleft}
+    $HOME/.config/sxhkd/scripts/window_manage.py move {0,1,2,3,4,5,6,7,8,9}
 
 # Numpad keys for moving active window to workspace:
 {alt,super} + shift + {KP_1,KP_2,KP_3,KP_4,KP_5,KP_6,KP_7,KP_8,KP_9,KP_0}

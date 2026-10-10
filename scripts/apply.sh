@@ -56,6 +56,13 @@ cp "$SCRIPT_DIR/config/antigravity/AGENTS.md" "$HOME/.gemini/AGENTS.md" 2>/dev/n
 cp "$SCRIPT_DIR/config/antigravity/GEMINI.md" "$HOME/.gemini/config/rules/global-rules.md" 2>/dev/null || true
 [ -f "$HOME/.gemini/antigravity-cli/settings.json" ] || cp "$SCRIPT_DIR/config/antigravity/settings.json" "$HOME/.gemini/antigravity-cli/settings.json" 2>/dev/null || true
 
+# Clean up legacy redundant autostart entries to prevent duplicate daemons
+rm -f "$HOME/.config/autostart/autotile.desktop" \
+      "$HOME/.config/autostart/picom.desktop" \
+      "$HOME/.config/autostart/polybar.desktop" \
+      "$HOME/.config/autostart/sxhkd.desktop" \
+      "$HOME/.config/autostart/xcape.desktop"
+
 # Copy Autostart entries
 cp "$SCRIPT_DIR/config/autostart/"*.desktop "$HOME/.config/autostart/"
 
@@ -69,6 +76,17 @@ cp "$SCRIPT_DIR/config/xprofile" "$HOME/.xprofile"
 chmod +x "$HOME/.xprofile"
 cp "$SCRIPT_DIR/scripts/init-desktop.sh" "$HOME/.config/myenvmint/init-desktop.sh"
 chmod +x "$HOME/.config/myenvmint/init-desktop.sh"
+
+# Apply desktop keyboard shortcuts & Whisker Menu settings
+if command -v xfconf-query >/dev/null 2>&1; then
+    xfconf-query -c keyboard-layout -p /Default/XkbOptions/Group -s "grp:win_space_toggle" 2>/dev/null || true
+    xfconf-query -c xfce4-keyboard-shortcuts -p "/commands/custom/Super_L" -n -t string -s "/bin/true" 2>/dev/null || true
+    xfconf-query -c xfce4-keyboard-shortcuts -p "/commands/custom/<Super>F1" -n -t string -s "xfce4-popup-whiskermenu" 2>/dev/null || true
+fi
+if command -v dconf >/dev/null 2>&1; then
+    dconf write /org/cinnamon/menu-key-binding "'<Super>F1'" 2>/dev/null || true
+    dconf write /org/cinnamon/desktop/keybindings/wm/panel-main-menu "['<Super>F1']" 2>/dev/null || true
+fi
 
 echo "==> Reloading running daemons..."
 /bin/bash "$HOME/.config/myenvmint/init-desktop.sh"
