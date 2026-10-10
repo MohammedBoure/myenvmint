@@ -31,7 +31,7 @@ A comprehensive, fully tracked desktop configuration environment that implements
 │   │   └── zshenv                # Early environment configuration for clean completion
 │   ├── powershell/               # Cross-platform PowerShell configuration
 │   │   └── Microsoft.PowerShell_profile.ps1 # PSReadLine ListView predictive history profile
-│   ├── micro/                    # Micro editor settings, bindings, and filemanager plugin
+│   ├── micro/                    # Micro editor settings, bindings, and productivity plugins (filemanager, fzf, editorconfig, bookmark, snippets)
 │   ├── barrier/                  # Barrier KVM keyboard/mouse sharing client config
 │   ├── duckdns/                  # DuckDNS dynamic DNS configuration templates
 │   ├── lazygit/                  # Lazygit terminal GUI configuration

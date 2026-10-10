@@ -9,7 +9,7 @@ This directory houses all user configuration bundles and dotfiles that define th
 - **`picom/`**: Compositor configuration (`picom.conf`) providing 2px active window white borders and subtle background dimming.
 - **`starship/`**: Starship prompt preset (`starship.toml`).
 - **`zsh/`**: Zsh shell configuration (`zshrc`).
-- **`micro/`**: Micro editor configurations (`bindings.json`, `settings.json`, and `filemanager` plugin).
+- **`micro/`**: Micro editor configurations (`bindings.json`, `settings.json`, and productivity plugins including `filemanager`, `fzf`, `editorconfig`, `bookmark`, `snippets`).
 - **`barrier/`**: KVM mouse and keyboard network sharing configuration (`Barrier.conf`).
 - **`lazygit/`**: Lazygit terminal UI configuration (`config.yml`).
 - **`ranger/`**: Ranger console file manager configuration.
