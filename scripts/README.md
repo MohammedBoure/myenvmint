@@ -12,3 +12,6 @@ This directory contains the core management, deployment, and orchestration shell
 
 - **`install.sh`**:
   The full system installation script for new machines or clean installs. It installs all APT packages, fonts, themes, Starship prompt, Micro editor, Lazygit, Antigravity CLI (`agy`), deploys all configurations, and applies desktop and system keyboard settings.
+
+- **`duckdns-update.sh`**:
+  Queries the current public IP address and securely sends an update request to DuckDNS for the configured domain using credentials isolated in environment variables.

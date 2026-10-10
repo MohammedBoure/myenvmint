@@ -1,0 +1,12 @@
+[Unit]
+Description=DuckDNS Dynamic DNS IP Update
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+EnvironmentFile=-%h/.config/duckdns/duckdns.env
+EnvironmentFile=-%h/Desktop/myenvmint/.env
+ExecStart=%h/.config/myenvmint/scripts/duckdns-update.sh
+StandardOutput=journal
+StandardError=journal

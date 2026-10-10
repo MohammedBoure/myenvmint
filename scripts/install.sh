@@ -136,12 +136,17 @@ rm -f "$HOME/.config/autostart/autotile.desktop" \
 # Autostart entries
 cp "$SCRIPT_DIR/config/autostart/"*.desktop "$HOME/.config/autostart/"
 
-# Deploy Xmodmap & Barrier systemd unit
+# Deploy Xmodmap & Systemd user units (Barrier & DuckDNS)
 cp "$SCRIPT_DIR/config/xmodmap/Xmodmap" "$HOME/.Xmodmap" 2>/dev/null || true
-mkdir -p "$HOME/.config/systemd/user"
-cp "$SCRIPT_DIR/config/systemd/user/barrier-client.service" "$HOME/.config/systemd/user/barrier-client.service" 2>/dev/null || true
+mkdir -p "$HOME/.config/systemd/user" "$HOME/.config/myenvmint/scripts"
+cp "$SCRIPT_DIR/config/systemd/user/"* "$HOME/.config/systemd/user/" 2>/dev/null || true
+cp "$SCRIPT_DIR/scripts/duckdns-update.sh" "$HOME/.config/myenvmint/scripts/duckdns-update.sh" 2>/dev/null || true
+chmod +x "$HOME/.config/myenvmint/scripts/duckdns-update.sh" 2>/dev/null || true
 systemctl --user daemon-reload 2>/dev/null || true
 systemctl --user enable --now barrier-client.service 2>/dev/null || true
+if [ -f "$HOME/.config/duckdns/duckdns.env" ] || [ -f "$SCRIPT_DIR/.env" ]; then
+    systemctl --user enable --now duckdns.timer 2>/dev/null || true
+fi
 
 # xprofile & Master Orchestrator
 cp "$SCRIPT_DIR/config/xprofile" "$HOME/.xprofile"
