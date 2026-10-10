@@ -40,6 +40,8 @@ if command -v xfconf-query >/dev/null 2>&1; then
     for k in KP_End KP_Down KP_Next KP_Left KP_Begin KP_Right KP_Home KP_Up KP_Page_Up KP_Insert; do
         xfconf-query -c xfce4-keyboard-shortcuts -p "/xfwm4/custom/<Super>$k" -r 2>/dev/null || true
     done
+    xfconf-query -c xfce4-keyboard-shortcuts -p "/commands/custom/<Super><Shift>s" -r 2>/dev/null || true
+    xfconf-query -c xfce4-keyboard-shortcuts -p "/commands/custom/<Super><Shift>S" -r 2>/dev/null || true
     xfconf-query -c xfce4-panel -p /panels/panel-1/position -n -t string -s "p=10;x=0;y=0" 2>/dev/null || true
     xfconf-query -c xfce4-panel -p /panels/panel-1/autohide-behavior -n -t uint -s 2 2>/dev/null || true
     xfconf-query -c xfce4-panel -p /panels/panel-1/position-locked -n -t bool -s true 2>/dev/null || true
@@ -49,6 +51,7 @@ fi
 if command -v dconf >/dev/null 2>&1; then
     dconf write /org/cinnamon/menu-key-binding "'<Super>F1'" 2>/dev/null || true
     dconf write /org/cinnamon/desktop/keybindings/wm/panel-main-menu "['<Super>F1']" 2>/dev/null || true
+    dconf write /org/cinnamon/desktop/keybindings/media-keys/area-screenshot-clip "['<Super><Shift>s', '<Super><Shift>S', '<Control><Shift>Print']" 2>/dev/null || true
 fi
 
 # Launch Dual-Role Modifier Daemon (xcape: solo Win tap opens menu, combo acts as modifier)

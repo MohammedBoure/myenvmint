@@ -91,6 +91,7 @@ A comprehensive, fully tracked desktop configuration environment that implements
 | :--- | :--- |
 | `Win (Super)` (single tap) | Open Start Menu (Whisker Menu) |
 | `Win + Space` | Instant keyboard layout toggle (French AZERTY / Arabic) without triggering menu |
+| `Win + Shift + S` | Interactive screenshot snip (select region and copy directly to clipboard) |
 | `Alt + Ctrl + Enter` | Open modern terminal (Zsh + Starship) |
 | `Alt + n` | Open default text editor (Xed) |
 | `Alt + Ctrl + t` | Open terminal inside the active Nemo file manager directory |

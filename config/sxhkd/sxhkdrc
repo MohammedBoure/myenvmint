@@ -125,3 +125,11 @@ alt + n
 # Open terminal in current directory of Nemo or home
 alt + control + t
     $HOME/.config/sxhkd/scripts/open_terminal.py
+
+# ------------------------------------------------------------------------------
+# 6. Screenshot (Snipping Tool region to clipboard)
+# ------------------------------------------------------------------------------
+# Interactive region screenshot to clipboard (Win + Shift + S)
+super + shift + s
+    xfce4-screenshooter -r -c && notify-send -i accessories-screenshot "Screenshot" "Selection copied to clipboard"
+
