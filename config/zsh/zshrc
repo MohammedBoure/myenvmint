@@ -1,6 +1,6 @@
 # ==============================================================================
 # Modern & Fast Zsh Configuration
-# Interactive Dropdown Menu + FZF-Tab + Native Complist + History Search
+# History-First Interactive Menu (PowerShell ListView UX) + Native Complist
 # ==============================================================================
 
 # ------------------------------------------------------------------------------
@@ -31,45 +31,50 @@ setopt HIST_REDUCE_BLANKS        # Remove superfluous blanks.
 setopt HIST_VERIFY               # Don't execute immediately upon history expansion.
 
 # ------------------------------------------------------------------------------
-# 3. Zsh Completion System & Native Menu Initialization
+# 3. History-First Completion & Native Complist Interactive Menu
 # ------------------------------------------------------------------------------
+# Ensure complist is active
 zmodload zsh/complist
 autoload -Uz compinit && compinit -D
 
-# History lines completion helper for interactive menu
-_history_lines() {
-    local -a hlines
-    if (( CURRENT == 1 )); then
-        local q="$PREFIX$SUFFIX"
-        if [[ -n "$q" ]]; then
-            hlines=(${(u)${(f)"$(fc -l -n -r 1 | grep -F -e "$q" | head -n 30)"}# })
-        else
-            hlines=(${(u)${(f)"$(fc -l -n -r 1 | head -n 30)"}# })
-        fi
-        if (( ${#hlines} )); then
-            _wanted history-lines expl 'History' compadd -Q -a hlines
-        fi
-    fi
+# Custom completer to pull exact history matching the current buffer prefix
+_history_lines_first() {
+  local -a matches
+  matches=("${(@f)$(fc -l -n 1 2>/dev/null | sed -e 's/^[[:space:]]*//' | grep "^${words[1]}" | tail -n 20)}")
+  matches=(${(u)matches:#})
+  matches=("${matches[@]//:/\\:}")
+  if [[ -n "$matches" ]]; then
+    _describe -t history-lines 'History' matches
+  fi
 }
 
-_complete_with_history() {
-    _history_lines "$@"
-    _complete "$@"
-}
-
-# Completion styling & grouping
-zstyle ':completion:*' completer _complete_with_history
-zstyle ':completion:*' insert-tab false
+# Force Zsh to evaluate History BEFORE filenames and commands
+zstyle ':completion:*' completer _history_lines_first _complete _approximate
 zstyle ':completion:*' menu select=1
-zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
-zstyle ':completion:*:descriptions' format '[%d]'
-zstyle ':completion:*:history-lines' format '[History]'
+zstyle ':completion:*:history-lines' format '%F{yellow}[History]%f'
 zstyle ':completion:*' group-name ''
 zstyle ':completion:*' group-order history-lines
+zstyle ':completion:*' list-grouped true
+zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
+zstyle ':completion:*:descriptions' format '[%d]'
 zstyle ':completion:*' verbose yes
 
-# Emacs keybindings mode
-bindkey -e
+# ------------------------------------------------------------------------------
+# 4. Key Bindings (Interactive Menu Navigation & Emacs Mode)
+# ------------------------------------------------------------------------------
+bindkey -e # Use emacs keybindings mode
+
+# Navigation keys for menu selection (PowerShell ListView style)
+bindkey -M menuselect '^I' menu-complete                  # Tab cycles forward
+bindkey -M menuselect '^[[Z' reverse-menu-complete         # Shift-Tab cycles backward
+bindkey -M menuselect '^M' .accept-line                   # Enter executes selected command
+bindkey -M menuselect '^[[A' up-line-or-history           # Up arrow moves up
+bindkey -M menuselect '^[OA' up-line-or-history
+bindkey -M menuselect '^[[B' down-line-or-history         # Down arrow moves down
+bindkey -M menuselect '^[OB' down-line-or-history
+
+# Make Tab instantly open and cycle menu-complete
+bindkey '^I' menu-complete
 
 # Arrow keys history substring search
 autoload -Uz up-line-or-beginning-search down-line-or-beginning-search
@@ -80,30 +85,12 @@ bindkey '^[OA' up-line-or-beginning-search
 bindkey '^[[B' down-line-or-beginning-search
 bindkey '^[OB' down-line-or-beginning-search
 
-# Native menuselect keybindings (for complist fallback)
-bindkey -M menuselect '^I' menu-complete
-bindkey -M menuselect '^[[Z' reverse-menu-complete
-bindkey -M menuselect '^M' .accept-line
-
-# Instant Tab completion trigger
-bindkey '^I' complete-word
-
-# Word navigation
+# Standard word navigation
 bindkey '^[[1;5C' forward-word
 bindkey '^[[1;5D' backward-word
 bindkey '^[[H' beginning-of-line
 bindkey '^[[F' end-of-line
 bindkey '^[[3~' delete-char
-
-# ------------------------------------------------------------------------------
-# 4. FZF-Tab Interactive Menu Plugin
-# ------------------------------------------------------------------------------
-if [ -f "$HOME/.zsh/fzf-tab/fzf-tab.plugin.zsh" ]; then
-    source "$HOME/.zsh/fzf-tab/fzf-tab.plugin.zsh"
-    zstyle ':fzf-tab:*' fzf-flags --height=40% --layout=reverse --border --prompt='❯ ' --bind=tab:down,btab:up
-    zstyle ':fzf-tab:*' switch-group '<' '>'
-    zstyle ':fzf-tab:complete:cd:*' fzf-preview 'ls -lah --color=always $realpath 2>/dev/null'
-fi
 
 # ------------------------------------------------------------------------------
 # 5. FZF Fuzzy History & Navigation Integration (Ctrl+R, Alt+C)
