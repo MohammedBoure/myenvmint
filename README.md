@@ -35,6 +35,7 @@
 │   ├── xed/                      # اختصارات محرر النصوص xed
 │   ├── xfce4/                    # إعدادات مظهر الطرفية، الشاشات المتعددة والأيقونات (xfconf)
 │   ├── cinnamon/                 # إعدادات ملحقات وقوائم Cinnamon (spices)
+│   ├── antigravity/              # إعدادات Antigravity CLI والتوجيهات العامة للذكاء الاصطناعي
 │   ├── autostart/                # ملفات التشغيل التلقائي عند بدء التشغيل
 │   │   ├── myenvmint-init.desktop
 │   │   ├── sxhkd.desktop
@@ -52,6 +53,10 @@
 │   ├── dconf_cinnamon.ini        # نسخة احتياطية لإعدادات Cinnamon
 │   ├── xfconf_keyboard.txt       # إعدادات تبديل اللغات في XFCE
 │   └── xfconf_shortcuts.txt      # اختصارات لوحة المفاتيح المسجلة
+├── .agent/                       # قواعد وتوجيهات Antigravity للبيئة الحالية
+│   └── rules/global-rules.md
+├── GEMINI.md                     # التوجيهات العامة للذكاء الاصطناعي على مستوى المشروع
+├── AGENTS.md                     # نسخة مطابقة للتوجيهات العامة لدعم كافة المحركات
 └── README.md                     # دليل الاستخدام والتوثيق
 ```
 
