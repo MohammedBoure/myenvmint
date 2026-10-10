@@ -1,0 +1,13 @@
+[Unit]
+Description=MyEnvMint System Keepalive Inhibitor
+Documentation=https://github.com/MohammedBoure/myenvmint
+After=default.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/systemd-inhibit --what=idle --who="MyEnvMint Keepalive" --why="Prevent sleep, idle, and screen lock permanently" --mode=block sleep infinity
+Restart=always
+RestartSec=5s
+
+[Install]
+WantedBy=default.target

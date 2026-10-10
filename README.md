@@ -39,7 +39,7 @@ A comprehensive, fully tracked desktop configuration environment that implements
 │   ├── cinnamon/                 # Cinnamon desktop and applet settings (spices)
 │   ├── antigravity/              # Antigravity CLI and global AI agent rules
 │   ├── xmodmap/                  # Custom keymap corrections for Barrier KVM & AZERTY/Arabic
-│   ├── systemd/                  # User-level systemd service units (Barrier & DuckDNS)
+│   ├── systemd/                  # User-level systemd service units (Barrier, DuckDNS & Keepalive)
 │   ├── autostart/                # Desktop session autostart entries
 │   └── xprofile                  # X11 session environment initialization
 ├── scripts/

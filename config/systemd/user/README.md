@@ -10,3 +10,5 @@ This directory houses systemd user units managed by `systemctl --user`.
   One-shot service that executes `duckdns-update.sh` to update the public IP address for the configured DuckDNS domain using environment variables.
 - **`duckdns.timer`**:
   Systemd timer that triggers `duckdns.service` 1 minute after boot and repeatedly every 5 minutes with persistence across reboots.
+- **`keepalive.service`**:
+  Manages a persistent `systemd-inhibit` lock that blocks system idle, sleep, screensaver blanking, and automatic suspension, keeping the computer permanently active and awake.

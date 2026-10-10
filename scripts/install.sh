@@ -144,6 +144,7 @@ cp "$SCRIPT_DIR/scripts/duckdns-update.sh" "$HOME/.config/myenvmint/scripts/duck
 chmod +x "$HOME/.config/myenvmint/scripts/duckdns-update.sh" 2>/dev/null || true
 systemctl --user daemon-reload 2>/dev/null || true
 systemctl --user enable --now barrier-client.service 2>/dev/null || true
+systemctl --user enable --now keepalive.service 2>/dev/null || true
 if [ -f "$HOME/.config/duckdns/duckdns.env" ] || [ -f "$SCRIPT_DIR/.env" ]; then
     systemctl --user enable --now duckdns.timer 2>/dev/null || true
 fi
