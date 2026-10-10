@@ -1,8 +1,8 @@
 ! Arabic corrections for Barrier KVM and AZERTY keyboards
-! Restore keycode 18 (number 9 / ccedilla) and keycode 51 (* / mu / backslash)
-keycode 18 = ccedilla 9 9 parenright asciicircum NoSymbol
-keycode 51 = asterisk mu backslash bar asterisk mu
-! Map dedicated unused keycodes 197 and 202 to Arabic_jeem and Arabic_thal across all groups
-! This ensures Barrier KVM always resolves jeem to ج and thal to ذ without touching digit 9
+! Map keycode 18 to Arabic_jeem in Arabic mode (fixes ٩ -> ج across Barrier KVM and physical layout)
+keycode 18 = ccedilla 9 Arabic_jeem parenright asciicircum NoSymbol Arabic_jeem U062C
+! Map keycode 51 to Arabic_thal in Arabic mode (fixes \ -> ذ across Barrier KVM and physical layout)
+keycode 51 = asterisk mu Arabic_thal bar asterisk mu Arabic_thal U0630
+! Map dedicated keycodes 197 and 202 as fallback for direct keysym injection
 keycode 197 = Arabic_jeem Arabic_jeem Arabic_jeem Arabic_jeem
 keycode 202 = Arabic_thal Arabic_thal Arabic_thal Arabic_thal

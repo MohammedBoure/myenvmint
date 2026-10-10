@@ -6,6 +6,6 @@ This directory contains custom X11 key modifier and keycode correction maps.
 
 - **`Xmodmap`**:
   Defines critical keyboard corrections for Barrier KVM clients and AZERTY keyboards:
-  - Maps dedicated keycode 197 to `Arabic_jeem` across all layout groups so Barrier resolves the Arabic letter `ج` cleanly without touching keycode 18 (digit 9).
-  - Maps dedicated keycode 202 to `Arabic_thal` across all layout groups so Barrier resolves `ذ` cleanly without touching keycode 51 (`\`).
-  - Restores keycode 18 (`ç` / `9`) and keycode 51 (`*` / `µ` / `\`) to clean standard behavior.
+  - Maps keycode 18 in Arabic mode (Group 2) to `Arabic_jeem` (`ج`), resolving the issue where typing `ج` through Barrier produced `9` or `٩`. French mode remains standard (`ç` / `9`).
+  - Maps keycode 51 in Arabic mode (Group 2) to `Arabic_thal` (`ذ`), resolving the issue where typing `ذ` through Barrier produced `\`. French mode remains standard (`*` / `µ`).
+  - Maps dedicated keycodes 197 and 202 as fallback for direct keysym injection.
