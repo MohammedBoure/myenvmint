@@ -1,5 +1,6 @@
 {
     "Ctrl-b": "command:tree",
+    "Ctrl-p": "command:fzf",
     "CtrlLeft": "WordLeft",
     "CtrlRight": "WordRight",
     "Ctrl-h": "DeleteWordLeft",

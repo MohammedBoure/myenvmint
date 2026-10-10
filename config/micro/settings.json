@@ -1,4 +1,21 @@
 {
     "autoclose": true,
-    "filemanager-openonstart": false
+    "autoindent": false,
+    "clipboard": "terminal",
+    "colorscheme": "monokai",
+    "cursorline": true,
+    "fastdirty": true,
+    "filemanager-openonstart": false,
+    "hlsearch": true,
+    "incsearch": true,
+    "keepautoindent": false,
+    "mouse": true,
+    "rmtrailingws": true,
+    "ruler": true,
+    "saveundo": true,
+    "scrollbar": true,
+    "softwrap": true,
+    "statusformatl": "$(filename) $(modified)| $(line):$(col) | $(opt:filetype) | $(opt:encoding)",
+    "tabsize": 4,
+    "tabstospaces": true
 }

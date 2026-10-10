@@ -37,6 +37,12 @@ if ! command -v micro >/dev/null 2>&1; then
     sudo mv micro /usr/local/bin/
 fi
 
+# Ensure standard productivity plugins for Micro are installed
+if command -v micro >/dev/null 2>&1; then
+    echo "==> Ensuring Micro productivity plugins are installed..."
+    micro -plugin install editorconfig fzf bookmark snippets filemanager 2>/dev/null || true
+fi
+
 # 5. Install Lazygit if missing
 if ! command -v lazygit >/dev/null 2>&1; then
     echo "==> Step 4: Installing Lazygit..."
@@ -50,6 +56,7 @@ fi
 # 6. Clone Zsh plugins if missing
 echo "==> Step 5: Setting up Zsh plugins..."
 mkdir -p "$HOME/.zsh"
+[ -d "$HOME/.zsh/fzf-tab" ] || git clone --depth 1 https://github.com/Aloxaf/fzf-tab "$HOME/.zsh/fzf-tab"
 [ -d "$HOME/.zsh/zsh-autocomplete" ] || git clone --depth 1 https://github.com/marlonrichert/zsh-autocomplete.git "$HOME/.zsh/zsh-autocomplete"
 [ -d "$HOME/.zsh/zsh-autosuggestions" ] || git clone https://github.com/zsh-users/zsh-autosuggestions "$HOME/.zsh/zsh-autosuggestions"
 [ -d "$HOME/.zsh/zsh-syntax-highlighting" ] || git clone https://github.com/zsh-users/zsh-syntax-highlighting.git "$HOME/.zsh/zsh-syntax-highlighting"
