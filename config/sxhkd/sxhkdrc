@@ -60,19 +60,19 @@ alt + shift + space
 # ------------------------------------------------------------------------------
 # Switch to workspace index 0 to 9:
 alt + {1,2,3,4,5,6,7,8,9,0}
-    wmctrl -s {0,1,2,3,4,5,6,7,8,9}
+    $HOME/.config/sxhkd/scripts/window_manage.py switch {0,1,2,3,4,5,6,7,8,9}
 
-# Send active window to workspace index 0 to 9:
+# Move active window to workspace index 0 to 9 and switch to it:
 alt + shift + {1,2,3,4,5,6,7,8,9,0}
-    wmctrl -r :ACTIVE: -t {0,1,2,3,4,5,6,7,8,9}
+    $HOME/.config/sxhkd/scripts/window_manage.py move {0,1,2,3,4,5,6,7,8,9}
 
 # AZERTY unshifted top-row keys for direct switching without Shift:
 alt + {ampersand,eacute,quotedbl,apostrophe,parenleft,minus,egrave,underscore,ccedilla,agrave}
-    wmctrl -s {0,1,2,3,4,5,6,7,8,9}
+    $HOME/.config/sxhkd/scripts/window_manage.py switch {0,1,2,3,4,5,6,7,8,9}
 
-# AZERTY shifted top-row keys for sending active window to workspace:
+# AZERTY shifted top-row keys for moving active window to workspace and switching to it:
 alt + shift + {ampersand,eacute,quotedbl,apostrophe,parenleft,minus,egrave,underscore,ccedilla,agrave}
-    wmctrl -r :ACTIVE: -t {0,1,2,3,4,5,6,7,8,9}
+    $HOME/.config/sxhkd/scripts/window_manage.py move {0,1,2,3,4,5,6,7,8,9}
 
 
 # ------------------------------------------------------------------------------

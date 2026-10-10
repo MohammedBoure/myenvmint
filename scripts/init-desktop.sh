@@ -31,7 +31,7 @@ setsid xcape -e 'Super_L=Super_L|F1' </dev/null >/dev/null 2>&1 &
 # 4. Launch Keybindings Daemon (sxhkd)
 killall -q sxhkd 2>/dev/null || true
 sleep 0.2
-setsid /usr/bin/sxhkd -c "$HOME/.config/sxhkd/sxhkdrc" </dev/null >/tmp/sxhkd.log 2>&1 &
+setsid /usr/bin/sxhkd -m -1 -c "$HOME/.config/sxhkd/sxhkdrc" </dev/null >/tmp/sxhkd.log 2>&1 &
 
 # 5. Launch Compositor (picom with GLX & white focus highlight)
 killall -q picom 2>/dev/null || true
