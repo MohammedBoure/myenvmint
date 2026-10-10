@@ -34,6 +34,9 @@ systemctl --user restart barrier-client.service 2>/dev/null || true
 if command -v xfconf-query >/dev/null 2>&1; then
     xfconf-query -c xfce4-keyboard-shortcuts -p "/commands/custom/Super_L" -n -t string -s "/bin/true" 2>/dev/null || true
     xfconf-query -c xfce4-keyboard-shortcuts -p "/commands/custom/<Super>F1" -n -t string -s "xfce4-popup-whiskermenu" 2>/dev/null || true
+    for k in KP_End KP_Down KP_Next KP_Left KP_Begin KP_Right KP_Home KP_Up KP_Page_Up KP_Insert; do
+        xfconf-query -c xfce4-keyboard-shortcuts -p "/xfwm4/custom/<Super>$k" -r 2>/dev/null || true
+    done
 fi
 if command -v dconf >/dev/null 2>&1; then
     dconf write /org/cinnamon/menu-key-binding "'<Super>F1'" 2>/dev/null || true

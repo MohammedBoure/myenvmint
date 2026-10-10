@@ -93,29 +93,25 @@ def get_client_leader(wid):
         pass
     return wid
 
+def get_managed_client_dict():
+    clients = {}
+    try:
+        out = subprocess.check_output(['wmctrl', '-l'], stderr=subprocess.DEVNULL).decode()
+        for line in out.splitlines():
+            parts = line.split(maxsplit=4)
+            wid = int(parts[0], 16)
+            desk = int(parts[1]) if parts[1].lstrip('-').isdigit() else -1
+            title = parts[4] if len(parts) > 4 else ''
+            if desk >= 0 and not any(t in title for t in ['Desktop', 'xfce4-panel', 'polybar']):
+                clients[wid] = desk
+    except Exception:
+        pass
+    return clients
+
 def is_valid_client_window(wid):
     if not wid or wid <= 0:
         return False
-    hex_id = hex(wid)
-    try:
-        wtype = subprocess.check_output(['xprop', '-id', hex_id, '_NET_WM_WINDOW_TYPE'], stderr=subprocess.DEVNULL).decode()
-        if any(t in wtype for t in [
-            '_NET_WM_WINDOW_TYPE_DESKTOP',
-            '_NET_WM_WINDOW_TYPE_DOCK',
-            '_NET_WM_WINDOW_TYPE_TOOLBAR',
-            '_NET_WM_WINDOW_TYPE_MENU',
-            '_NET_WM_WINDOW_TYPE_SPLASH'
-        ]):
-            return False
-    except Exception:
-        pass
-    try:
-        wstate = subprocess.check_output(['xprop', '-id', hex_id, '_NET_WM_STATE'], stderr=subprocess.DEVNULL).decode()
-        if '_NET_WM_STATE_STICKY' in wstate:
-            return False
-    except Exception:
-        pass
-    return True
+    return wid in get_managed_client_dict()
 
 def get_current_desktop():
     try:
@@ -132,12 +128,18 @@ def get_current_desktop():
         return 0
 
 def get_target_window():
+    managed = get_managed_client_dict()
+    if not managed:
+        return None
+
+    cur_desk = get_current_desktop()
+
     # 1. Try currently active window
     try:
         out = subprocess.check_output(['xdotool', 'getactivewindow'], stderr=subprocess.DEVNULL).decode().strip()
         wid = int(out)
         leader = get_client_leader(wid)
-        if leader and is_valid_client_window(leader):
+        if leader in managed and managed[leader] == cur_desk:
             return leader
     except Exception:
         pass
@@ -149,7 +151,7 @@ def get_target_window():
             if token.startswith('0x'):
                 wid = int(token.rstrip(','), 16)
                 leader = get_client_leader(wid)
-                if leader and is_valid_client_window(leader):
+                if leader in managed and managed[leader] == cur_desk:
                     return leader
     except Exception:
         pass
@@ -161,26 +163,25 @@ def get_target_window():
             if line.startswith('WINDOW='):
                 wid = int(line.split('=')[1])
                 leader = get_client_leader(wid)
-                if leader and is_valid_client_window(leader):
+                if leader in managed and managed[leader] == cur_desk:
                     return leader
     except Exception:
         pass
 
     # 4. Fallback: Find topmost valid client on current desktop
-    cur_desk = get_current_desktop()
     try:
         out = subprocess.check_output(['wmctrl', '-l'], stderr=subprocess.DEVNULL).decode()
-        candidates = []
-        for line in out.splitlines():
-            parts = line.split(maxsplit=4)
-            wid = int(parts[0], 16)
-            desk = int(parts[1]) if parts[1].lstrip('-').isdigit() else -1
-            if desk == cur_desk and is_valid_client_window(wid):
-                candidates.append(wid)
-        if candidates:
-            return candidates[-1]
+        for line in reversed(out.splitlines()):
+            wid = int(line.split()[0], 16)
+            if wid in managed and managed[wid] == cur_desk:
+                return wid
     except Exception:
         pass
+
+    # 5. Last resort: Any client in managed on current desktop
+    for wid, desk in managed.items():
+        if desk == cur_desk:
+            return wid
 
     return None
 
