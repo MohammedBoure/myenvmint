@@ -19,8 +19,10 @@ GAP = 6
 OUTER_GAP = 6
 FLOATING_FILE = "/tmp/autotile_floating.txt"
 
-# Track window order per desktop to ensure stable layout
+# Track window order, trees, and active targets per desktop
 workspace_windows = {}
+workspace_trees = {}
+last_active_windows = {}
 _disp = None
 
 def get_disp():
@@ -238,85 +240,148 @@ def update_borders(current_order):
     except Exception:
         pass
 
+class TileNode:
+    def __init__(self, wid=None, split='horizontal', ratio=0.5, left=None, right=None):
+        self.wid = wid
+        self.split = split  # 'horizontal' (side-by-side) or 'vertical' (stacked)
+        self.ratio = ratio
+        self.left = left
+        self.right = right
+
+    @property
+    def is_leaf(self):
+        return self.wid is not None
+
+    def get_leaves(self):
+        if self.is_leaf:
+            return [self.wid]
+        leaves = []
+        if self.left:
+            leaves.extend(self.left.get_leaves())
+        if self.right:
+            leaves.extend(self.right.get_leaves())
+        return leaves
+
+    def find_node(self, wid):
+        if self.is_leaf:
+            return self if self.wid == wid else None
+        if self.left:
+            found = self.left.find_node(wid)
+            if found:
+                return found
+        if self.right:
+            return self.right.find_node(wid)
+        return None
+
+    def remove_wid(self, wid):
+        if self.is_leaf:
+            return None if self.wid == wid else self
+        if self.left:
+            self.left = self.left.remove_wid(wid)
+        if self.right:
+            self.right = self.right.remove_wid(wid)
+        if self.left is None:
+            return self.right
+        if self.right is None:
+            return self.left
+        return self
+
+def compute_layout(node, x, y, w, h, gap, result):
+    if node is None:
+        return
+    if node.is_leaf:
+        result[node.wid] = (x, y, w, h)
+        return
+    if node.split == 'horizontal':
+        w1 = max(50, int((w - gap) * node.ratio))
+        w2 = max(50, (w - gap) - w1)
+        x2 = x + w1 + gap
+        compute_layout(node.left, x, y, w1, h, gap, result)
+        compute_layout(node.right, x2, y, w2, h, gap, result)
+    else:
+        h1 = max(50, int((h - gap) * node.ratio))
+        h2 = max(50, (h - gap) - h1)
+        y2 = y + h1 + gap
+        compute_layout(node.left, x, y, w, h1, gap, result)
+        compute_layout(node.right, x, y2, w, h2, gap, result)
+
+def insert_window(root, new_wid, target_wid, usable_w, usable_h, gap):
+    if root is None:
+        return TileNode(wid=new_wid)
+    curr_layout = {}
+    compute_layout(root, 0, 0, usable_w, usable_h, gap, curr_layout)
+    target_node = None
+    if target_wid and target_wid in curr_layout:
+        target_node = root.find_node(target_wid)
+    if not target_node:
+        leaves = [wid for wid in curr_layout]
+        if leaves:
+            target_wid = leaves[-1]
+            target_node = root.find_node(target_wid)
+        else:
+            return TileNode(wid=new_wid)
+
+    tw_x, tw_y, tw_w, tw_h = curr_layout.get(target_wid, (0, 0, usable_w, usable_h))
+    # If target window width >= height * 1.3, split horizontally; else split vertically
+    split_dir = 'horizontal' if tw_w >= tw_h * 1.3 else 'vertical'
+
+    old_wid = target_node.wid
+    target_node.wid = None
+    target_node.split = split_dir
+    target_node.ratio = 0.5
+    target_node.left = TileNode(wid=old_wid)
+    target_node.right = TileNode(wid=new_wid)
+    return root
+
 def retile_workspace(desktop_id):
     raw_windows = get_client_windows(desktop_id)
     raw_ids = [w['id'] for w in raw_windows]
 
-    if desktop_id not in workspace_windows:
-        workspace_windows[desktop_id] = []
-
-    # Maintain stable ordering: keep existing, append new, drop closed
-    current_order = [wid for wid in workspace_windows[desktop_id] if wid in raw_ids]
-    for wid in raw_ids:
-        if wid not in current_order:
-            current_order.append(wid)
-    workspace_windows[desktop_id] = current_order
-
-    N = len(current_order)
-    if N == 0:
-        return
-
     wa_x, wa_y, wa_w, wa_h = get_workarea(desktop_id)
+    usable_x = wa_x + OUTER_GAP
+    usable_y = wa_y + OUTER_GAP
     usable_w = wa_w - 2 * OUTER_GAP
     usable_h = wa_h - 2 * OUTER_GAP
 
-    if N == 1:
-        # Fullscreen single tile with outer gap
-        tile_window(current_order[0], wa_x + OUTER_GAP, wa_y + OUTER_GAP, usable_w, usable_h)
-    elif N == 2:
-        # 50-50 Binary Column Split with visible GAP and OUTER_GAP
-        half_w = (usable_w - GAP) // 2
-        tile_window(current_order[0], wa_x + OUTER_GAP, wa_y + OUTER_GAP, half_w, usable_h)
-        x2 = wa_x + OUTER_GAP + half_w + GAP
-        w2 = (wa_x + wa_w - OUTER_GAP) - x2
-        tile_window(current_order[1], x2, wa_y + OUTER_GAP, w2, usable_h)
-    elif N == 3:
-        # Master-Stack: Left master (50%), Right stack of 2 (50% each vertically)
-        master_w = (usable_w - GAP) // 2
-        tile_window(current_order[0], wa_x + OUTER_GAP, wa_y + OUTER_GAP, master_w, usable_h)
+    root = workspace_trees.get(desktop_id)
+    current_leaves = root.get_leaves() if root else []
 
-        stack_x = wa_x + OUTER_GAP + master_w + GAP
-        stack_w = (wa_x + wa_w - OUTER_GAP) - stack_x
-        half_h = (usable_h - GAP) // 2
+    # 1. Remove closed / unmapped windows
+    for wid in current_leaves:
+        if wid not in raw_ids and root:
+            root = root.remove_wid(wid)
 
-        tile_window(current_order[1], stack_x, wa_y + OUTER_GAP, stack_w, half_h)
-        y3 = wa_y + OUTER_GAP + half_h + GAP
-        h3 = (wa_y + wa_h - OUTER_GAP) - y3
-        tile_window(current_order[2], stack_x, y3, stack_w, h3)
-    elif N == 4:
-        # 2x2 Grid
-        half_w = (usable_w - GAP) // 2
-        half_h = (usable_h - GAP) // 2
-        col2_x = wa_x + OUTER_GAP + half_w + GAP
-        col2_w = (wa_x + wa_w - OUTER_GAP) - col2_x
-        row2_y = wa_y + OUTER_GAP + half_h + GAP
-        row2_h = (wa_y + wa_h - OUTER_GAP) - row2_y
+    current_leaves = root.get_leaves() if root else []
 
-        tile_window(current_order[0], wa_x + OUTER_GAP, wa_y + OUTER_GAP, half_w, half_h)
-        tile_window(current_order[1], wa_x + OUTER_GAP, row2_y, half_w, row2_h)
-        tile_window(current_order[2], col2_x, wa_y + OUTER_GAP, col2_w, half_h)
-        tile_window(current_order[3], col2_x, row2_y, col2_w, row2_h)
-    else:
-        # Generalized Master-Stack (Master on left, N-1 stacked vertically on right)
-        master_w = (usable_w - GAP) // 2
-        tile_window(current_order[0], wa_x + OUTER_GAP, wa_y + OUTER_GAP, master_w, usable_h)
+    # 2. Determine target window where user was focused before event
+    target_wid = last_active_windows.get(desktop_id)
+    if target_wid not in current_leaves and current_leaves:
+        target_wid = current_leaves[-1]
 
-        stack_x = wa_x + OUTER_GAP + master_w + GAP
-        stack_w = (wa_x + wa_w - OUTER_GAP) - stack_x
-        num_stack = N - 1
-        total_stack_gaps = (num_stack - 1) * GAP
-        each_h = (usable_h - total_stack_gaps) // num_stack
+    # 3. Add any newly opened windows next to target window
+    new_wids = [wid for wid in raw_ids if wid not in current_leaves]
+    for wid in new_wids:
+        root = insert_window(root, wid, target_wid, usable_w, usable_h, GAP)
+        target_wid = wid
 
-        for i in range(num_stack):
-            cur_y = wa_y + OUTER_GAP + i * (each_h + GAP)
-            if i == num_stack - 1:
-                cur_h = (wa_y + wa_h - OUTER_GAP) - cur_y
-            else:
-                cur_h = each_h
-            tile_window(current_order[1 + i], stack_x, cur_y, stack_w, cur_h)
+    workspace_trees[desktop_id] = root
+    leaves = root.get_leaves() if root else []
+    workspace_windows[desktop_id] = leaves
 
-    # Update 1px border colors
-    update_borders(current_order)
+    # 4. Position and tile all windows in tree
+    if root:
+        layout = {}
+        compute_layout(root, usable_x, usable_y, usable_w, usable_h, GAP, layout)
+        for wid, (x, y, w, h) in layout.items():
+            tile_window(wid, x, y, w, h)
+
+    # 5. Update borders
+    update_borders(leaves)
+
+    # 6. Update last active window
+    active_now = get_active_window()
+    if active_now and not is_floating_or_ignored(active_now) and active_now in leaves:
+        last_active_windows[desktop_id] = active_now
 
 def run():
     disp = get_disp()
@@ -348,6 +413,9 @@ def run():
                             should_retile = True
                         elif event.atom == atom_net_active:
                             curr_desk = get_current_desktop()
+                            active_now = get_active_window()
+                            if active_now and not is_floating_or_ignored(active_now):
+                                last_active_windows[curr_desk] = active_now
                             update_borders(workspace_windows.get(curr_desk, []))
 
             curr_desk = get_current_desktop()

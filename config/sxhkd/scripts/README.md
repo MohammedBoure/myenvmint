@@ -5,7 +5,7 @@ This directory contains the Python automation scripts that power the GlazeWM-sty
 ## Files & Purposes
 
 - **`autotile.py`**:
-  A lightweight event-driven daemon that monitors X11 window creation, mapping, and destruction via Xlib. It automatically arranges active client windows into clean tiled splits with configurable gaps and ignores dialogs, panels, and docks.
+  A lightweight event-driven daemon that monitors X11 window events via Xlib. It uses a dynamic Binary Tiling Tree (BSP) to automatically split the space of the currently focused window based on user position and aspect ratio, maintaining clean gaps and automatic layout restoration when windows are closed.
 
 - **`focus.py`**:
   Calculates geometric distance vectors across all visible windows on the current monitor to switch focus directionally (`left`, `right`, `up`, `down`) relative to the currently active window.
@@ -19,4 +19,4 @@ This directory contains the Python automation scripts that power the GlazeWM-sty
   - Workspace moving (`move <N>`): resolves the target window (active window, window under pointer, or top client fallback), moves it to workspace N, switches view to workspace N, and focuses the moved window.
 
 - **`open_terminal.py`**:
-  Inspects the active window. If it is a Nemo file manager window, it resolves the current directory and spawns a new terminal directly inside that folder; otherwise, it opens the terminal in the user's home directory.
+  Resolves the current or last visited directory in the Nemo file manager (via active/open window extraction with clipboard preservation and persistent caching) or active terminal session, launching the new terminal directly inside that folder.

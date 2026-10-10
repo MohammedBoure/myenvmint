@@ -9,7 +9,7 @@ This directory contains the Simple X Hotkey Daemon (sxhkd) configuration and its
   - Directional navigation (`Alt + h/j/k/l` or arrows).
   - Window management: non-destructive closing (`Alt + q`), fullscreen toggle (`Alt + f`), minimize (`Alt + m`), centering (`Alt + Shift + Space`), and fine resizing (`Alt + u/p/i/o`).
   - Workspaces 1 to 10 switching (`Alt + 1..0`) with automatic client focus, and moving windows to workspaces (`Alt + Shift + 1..0`) with automatic viewport switching and smart window selection (no manual clicking required).
-  - Quick application launching (`Alt + Ctrl + Enter` for terminal, `Alt + n` for xed, `Alt + Ctrl + t` for terminal at active directory).
+  - Quick application launching (`Alt + Ctrl + Enter` or `Alt + Ctrl + t` for terminal inheriting current/last file manager directory, `Alt + n` for xed).
   - Snipping Tool screenshot shortcut (`Win + Shift + S` / `Super + Shift + S`) to interactively select a screen region and copy it directly to the clipboard with desktop notification.
 - **`scripts/`**:
-  Contains Python automation scripts used by sxhkd for GlazeWM-like window management.
+  Contains Python automation scripts used by sxhkd for GlazeWM-like binary tree window tiling, directional focus, workspace routing, and context-aware terminal launching.
