@@ -18,4 +18,6 @@ This directory houses all user configuration bundles and dotfiles that define th
 - **`cinnamon/`**: Cinnamon spice applet configurations (sound, power, network, menu).
 - **`autostart/`**: Desktop entry autostart launchers deployed to `~/.config/autostart/`.
 - **`antigravity/`**: Antigravity CLI and IDE global instructions (`GEMINI.md`, `AGENTS.md`) and settings.
+- **`xmodmap/`**: X11 keycode mappings fixing Barrier Arabic typing (`Xmodmap`).
+- **`systemd/`**: User systemd unit services (`barrier-client.service`).
 - **`xprofile`**: X11 session login script invoking `init-desktop.sh`.

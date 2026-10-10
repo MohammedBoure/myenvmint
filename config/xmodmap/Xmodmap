@@ -1,0 +1,5 @@
+! Arabic corrections for Barrier KVM and AZERTY keyboards
+! Map keycode 18 to Arabic_jeem in Arabic mode (fixes ٩ -> ج)
+keycode 18 = ccedilla 9 9 parenright asciicircum NoSymbol Arabic_jeem U062C
+! Map keycode 51 to Arabic_thal in Arabic mode (fixes \ -> ذ)
+keycode 51 = asterisk mu backslash bar Arabic_thal Arabic_shadda Arabic_thal

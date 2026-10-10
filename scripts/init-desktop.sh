@@ -23,6 +23,11 @@ wmctrl -n 10 2>/dev/null || true
 # 2. Configure System Keyboard Layout (FR AZERTY + Arabic, Win+Space toggle)
 setxkbmap -layout "fr,ara" -variant "azerty," -option "grp:win_space_toggle,terminate:ctrl_alt_bksp" 2>/dev/null || true
 
+# 2b. Apply Arabic Keycode Corrections for Barrier & AZERTY (Jeem and Thal)
+xmodmap -e "keycode 18 = ccedilla 9 9 parenright asciicircum NoSymbol Arabic_jeem U062C" 2>/dev/null || true
+xmodmap -e "keycode 51 = asterisk mu backslash bar Arabic_thal Arabic_shadda Arabic_thal" 2>/dev/null || true
+systemctl --user restart barrier-client.service 2>/dev/null || true
+
 # 3. Launch Dual-Role Modifier Daemon (xcape: solo Win tap opens menu, combo acts as modifier)
 killall -q xcape 2>/dev/null || true
 sleep 0.2

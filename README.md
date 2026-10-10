@@ -36,6 +36,8 @@
 │   ├── xfce4/                    # إعدادات مظهر الطرفية، الشاشات المتعددة والأيقونات (xfconf)
 │   ├── cinnamon/                 # إعدادات ملحقات وقوائم Cinnamon (spices)
 │   ├── antigravity/              # إعدادات Antigravity CLI والتوجيهات العامة للذكاء الاصطناعي
+│   ├── xmodmap/                  # تصحيحات خريطة المفاتيح لتطبيق Barrier ولوحات AZERTY
+│   ├── systemd/                  # خدمات النظام على مستوى المستخدم (خدمة عميل Barrier)
 │   ├── autostart/                # ملفات التشغيل التلقائي عند بدء التشغيل
 │   │   ├── myenvmint-init.desktop
 │   │   ├── sxhkd.desktop

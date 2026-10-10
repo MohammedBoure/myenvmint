@@ -129,6 +129,13 @@ cp "$SCRIPT_DIR/config/antigravity/GEMINI.md" "$HOME/.gemini/config/rules/global
 # Autostart entries
 cp "$SCRIPT_DIR/config/autostart/"*.desktop "$HOME/.config/autostart/"
 
+# Deploy Xmodmap & Barrier systemd unit
+cp "$SCRIPT_DIR/config/xmodmap/Xmodmap" "$HOME/.Xmodmap" 2>/dev/null || true
+mkdir -p "$HOME/.config/systemd/user"
+cp "$SCRIPT_DIR/config/systemd/user/barrier-client.service" "$HOME/.config/systemd/user/barrier-client.service" 2>/dev/null || true
+systemctl --user daemon-reload 2>/dev/null || true
+systemctl --user enable --now barrier-client.service 2>/dev/null || true
+
 # xprofile & Master Orchestrator
 cp "$SCRIPT_DIR/config/xprofile" "$HOME/.xprofile"
 chmod +x "$HOME/.xprofile"
