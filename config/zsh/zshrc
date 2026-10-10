@@ -19,31 +19,30 @@ HISTFILE="$HOME/.zsh_history"
 HISTSIZE=10000
 SAVEHIST=10000
 
-setopt EXTENDED_HISTORY          # Write the history file in the ':start:elapsed;command' format.
-setopt SHARE_HISTORY             # Share history between all sessions.
+setopt EXTENDED_HISTORY          # Write history in ':start:elapsed;command' format.
+setopt SHARE_HISTORY             # Share history across all active terminals.
 setopt HIST_EXPIRE_DUPS_FIRST    # Expire duplicate entries first when trimming history.
-setopt HIST_IGNORE_DUPS          # Don't record an entry that was just recorded again.
+setopt HIST_IGNORE_DUPS          # Don't record duplicate consecutive entries.
 setopt HIST_IGNORE_ALL_DUPS      # Delete old duplicate entry if new entry is a duplicate.
 setopt HIST_FIND_NO_DUPS         # Do not display a line previously found.
 setopt HIST_IGNORE_SPACE         # Don't record an entry starting with a space.
-setopt HIST_SAVE_NO_DUPS         # Don't write duplicate entries in the history file.
-setopt HIST_REDUCE_BLANKS        # Remove superfluous blanks before recording entry.
+setopt HIST_SAVE_NO_DUPS         # Don't write duplicate entries in history file.
+setopt HIST_REDUCE_BLANKS        # Remove superfluous blanks.
 setopt HIST_VERIFY               # Don't execute immediately upon history expansion.
 
 # ------------------------------------------------------------------------------
-# 3. Completion System & Interactive Menu Configuration
+# 3. Autocomplete Configuration & Plugin Loading (MUST BE AT THE VERY TOP)
 # ------------------------------------------------------------------------------
-zmodload -i zsh/complist
-zmodload -i zsh/terminfo
+zstyle ':autocomplete:*' min-input 1
+zstyle ':autocomplete:*' delay 0.05
+zstyle ':autocomplete:*' list-lines 10
+zstyle ':autocomplete:history-search:*' list-lines 10
+zstyle ':autocomplete:history-incremental-search:*' list-lines 10
+zstyle ':autocomplete:*' add-semicolon no
 
-# Interactive menu selection styling
+# Completion system styling & metadata tags
 zstyle ':completion:*' menu select
 zstyle ':completion:*' verbose yes
-zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}' # Case-insensitive matching
-zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
-zstyle ':completion:*' rehash true
-
-# Metadata / Source tags for completions
 zstyle ':completion:*:history-lines' format '%F{yellow}[History]%f'
 zstyle ':completion:*:history-words' format '%F{yellow}<History(%n)>%f'
 zstyle ':completion:*:commands' format '%F{cyan}[Command]%f'
@@ -57,14 +56,8 @@ zstyle ':completion:*:warnings' format '%F{red}No matches found%f'
 # Prioritize history lines first in the completion menu
 zstyle ':completion:*' group-order history-lines options executables directories suffix-aliases aliases functions builtins reserved-words
 
-# ------------------------------------------------------------------------------
-# 4. Real-Time Dropdown Autocomplete Plugin (zsh-autocomplete)
-# ------------------------------------------------------------------------------
+# Source zsh-autocomplete at top before any manual hooks or secondary plugins
 if [ -f "$HOME/.zsh/zsh-autocomplete/zsh-autocomplete.plugin.zsh" ]; then
-    zstyle ':autocomplete:*:*' list-lines 8
-    zstyle ':autocomplete:*' delay 0.05
-    zstyle ':autocomplete:*' min-input 1
-    zstyle ':autocomplete:*' add-semicolon no
     source "$HOME/.zsh/zsh-autocomplete/zsh-autocomplete.plugin.zsh"
 else
     # Fallback to standard compinit if zsh-autocomplete is not present
@@ -73,30 +66,14 @@ else
 fi
 
 # ------------------------------------------------------------------------------
-# 5. Key Bindings (Interactive Menu, Substring Search & Emacs Mode)
+# 4. Key Bindings (Interactive Menu Navigation & Emacs Mode)
 # ------------------------------------------------------------------------------
 bindkey -e # Use emacs keybindings mode
-
-autoload -Uz up-line-or-beginning-search down-line-or-beginning-search
-zle -N up-line-or-beginning-search
-zle -N down-line-or-beginning-search
 
 # Interactive Menu Selection bindings (Cycling and Selection)
 bindkey -M menuselect '^I' menu-complete                  # Tab cycles forward
 bindkey -M menuselect '^[[Z' reverse-menu-complete         # Shift-Tab cycles backward
-bindkey -M menuselect '^[[A' up-line-or-history           # Up arrow in menu
-bindkey -M menuselect '^[[B' down-line-or-history         # Down arrow in menu
-bindkey -M menuselect '^[OA' up-line-or-history
-bindkey -M menuselect '^[OB' down-line-or-history
-bindkey -M menuselect '^M' .accept-line                   # Enter accepts and executes selection
-
-# Command-line beginning search via arrow keys
-bindkey '^[[A' up-line-or-beginning-search
-bindkey '^[[B' down-line-or-beginning-search
-bindkey '^[OA' up-line-or-beginning-search
-bindkey '^[OB' down-line-or-beginning-search
-bindkey '^P' up-line-or-beginning-search
-bindkey '^N' down-line-or-beginning-search
+bindkey -M menuselect '^M' .accept-line                   # Enter accepts/executes selection
 
 # Standard word navigation
 bindkey '^[[1;5C' forward-word
@@ -106,7 +83,7 @@ bindkey '^[[F' end-of-line
 bindkey '^[[3~' delete-char
 
 # ------------------------------------------------------------------------------
-# 6. FZF Fuzzy History & Navigation Integration
+# 5. FZF Fuzzy History & Navigation Integration
 # ------------------------------------------------------------------------------
 export FZF_DEFAULT_OPTS='--height 40% --layout=reverse --border'
 export FZF_CTRL_R_OPTS='--preview "echo {}" --preview-window down:3:wrap --sort --exact'
@@ -119,21 +96,14 @@ if [ -f /usr/share/doc/fzf/examples/completion.zsh ]; then
 fi
 
 # ------------------------------------------------------------------------------
-# 7. Additional Plugins (Autosuggestions & Syntax Highlighting)
+# 6. Syntax Highlighting (Must be sourced after autocomplete)
 # ------------------------------------------------------------------------------
-if [ -f "$HOME/.zsh/zsh-autosuggestions/zsh-autosuggestions.zsh" ]; then
-    source "$HOME/.zsh/zsh-autosuggestions/zsh-autosuggestions.zsh"
-    ZSH_AUTOSUGGEST_STRATEGY=(history completion)
-    ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=8'
-fi
-
-# Syntax Highlighting must be sourced at the end of plugins
 if [ -f "$HOME/.zsh/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" ]; then
     source "$HOME/.zsh/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
 fi
 
 # ------------------------------------------------------------------------------
-# 8. Quality of Life Aliases
+# 7. Quality of Life Aliases
 # ------------------------------------------------------------------------------
 alias ls='ls --color=auto'
 alias ll='ls -lah --color=auto'
@@ -146,7 +116,7 @@ alias df='df -h'
 alias free='free -m'
 
 # ------------------------------------------------------------------------------
-# 9. Starship Prompt Initialization
+# 8. Starship Prompt Initialization
 # ------------------------------------------------------------------------------
 if command -v starship >/dev/null 2>&1; then
     eval "$(starship init zsh)"
