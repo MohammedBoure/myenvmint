@@ -10,6 +10,7 @@
     "incsearch": true,
     "keepautoindent": false,
     "mouse": true,
+    "openbftype": "tab",
     "rmtrailingws": true,
     "ruler": true,
     "saveundo": true,

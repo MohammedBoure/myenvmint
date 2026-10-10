@@ -25,6 +25,7 @@ This directory contains configuration files, keybindings, and productivity plugi
   - `"statusformatl"`: Informative status line displaying file name, modification status, cursor coordinates, filetype, and encoding.
   - `"autoclose": true`: Automatically closes braces and quotes.
   - `"filemanager-openonstart": false`: Keeps editor uncluttered on initial file open.
+  - `"openbftype": "tab"`: Avoids multi-pane split views on file picks; opens files directly into active buffer (or new tab if buffer is populated).
 
 - **`plug/`**:
   Directory containing productivity plugins (`filemanager`, `editorconfig`, `fzf`, `bookmark`, `snippets`).

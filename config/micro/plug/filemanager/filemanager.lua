@@ -523,12 +523,41 @@ local function try_open_at_y(y)
 			-- if passed path is a directory, update the current dir to be one deeper..
 			update_current_dir(scanlist[y].abspath)
 		else
-			-- If it's a file, then open it
-			micro.InfoBar():Message("Filemanager opened ", scanlist[y].abspath)
-			-- Opens the absolute path in new vertical view
-			micro.CurPane():VSplitIndex(buffer.NewBufferFromFile(scanlist[y].abspath), true)
-			-- Resizes all views after opening a file
-			-- tabs[curTab + 1]:Resize()
+			-- If it's a file, open it directly on the active view and close tree to prevent splits
+			local target_path = scanlist[y].abspath
+			micro.InfoBar():Message("Filemanager opened ", target_path)
+
+			local other_pane = nil
+			if tree_view ~= nil then
+				tree_view:NextSplit()
+				if micro.CurPane() ~= tree_view then
+					other_pane = micro.CurPane()
+				end
+			end
+
+			if other_pane ~= nil then
+				close_tree()
+				local bftype = config.GetGlobalOption("openbftype")
+				if bftype == "tab" and other_pane.Buf.Path ~= "" then
+					other_pane:HandleCommand('tab "' .. target_path .. '"')
+				else
+					other_pane:HandleCommand('open "' .. target_path .. '"')
+				end
+			else
+				local bftype = config.GetGlobalOption("openbftype")
+				if bftype == "tab" then
+					micro.CurPane():HandleCommand('tab "' .. target_path .. '"')
+					close_tree()
+				else
+					local buf, err = buffer.NewBufferFromFile(target_path)
+					if err == nil then
+						micro.CurPane():OpenBuffer(buf)
+						tree_view = nil
+					else
+						micro.InfoBar():Error(err)
+					end
+				end
+			end
 		end
 	else
 		micro.InfoBar():Error("Can't open that")
@@ -1354,6 +1383,9 @@ function init()
     -- Lets the user have the filetree auto-open any time Micro is opened
     -- false by default, as it's a rather noticable user-facing change
     config.RegisterCommonOption("filemanager", "openonstart", false)
+
+    -- Option to control buffer opening behavior (tab vs open/buffer)
+    config.RegisterGlobalOption("openbftype", "tab")
 
     -- Open/close the tree view
     config.MakeCommand("tree", toggle_tree, config.NoComplete)

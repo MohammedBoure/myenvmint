@@ -5,10 +5,10 @@ This directory contains installed productivity plugins for the Micro text editor
 ## Plugins & Purposes
 
 - **`filemanager/`**:
-  A file manager tree explorer plugin for Micro allowing sidebar navigation and opening project files via `Ctrl-b`.
+  A file manager tree explorer plugin for Micro allowing sidebar navigation (`Ctrl-b`). Configured to automatically close the sidebar and open the chosen file directly on the active buffer without creating vertical/horizontal split panes.
 
 - **`fzf/`**:
-  Fuzzy file finder integration using `fzf` to quickly search and open files via `Ctrl-p` or the `fzf` command.
+  Fuzzy file finder integration using `fzf` to quickly search and open files via `Ctrl-p` or the `fzf` command. Configured to run interactively and open selections directly via standard `open`/`tab` commands without spawning split terminal panes.
 
 - **`editorconfig/`**:
   EditorConfig integration automatically setting indent styles, tab sizes, and trimming trailing whitespace based on `.editorconfig`.
