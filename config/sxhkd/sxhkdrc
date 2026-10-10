@@ -115,7 +115,7 @@ super + shift + {KP_End,KP_Down,KP_Next,KP_Left,KP_Begin,KP_Right,KP_Home,KP_Up,
 # 5. Application Launchers
 # ------------------------------------------------------------------------------
 # Launch terminal at current/last file manager directory
-alt + control + Return
+alt + control + {Return,KP_Enter}
     $HOME/.config/sxhkd/scripts/open_terminal.py
 
 # Launch default text editor

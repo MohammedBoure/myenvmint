@@ -19,4 +19,4 @@ This directory contains the Python automation scripts that power the GlazeWM-sty
   - Workspace moving (`move <N>`): resolves the target window (active window, window under pointer, or top client fallback), moves it to workspace N, switches view to workspace N, and focuses the moved window.
 
 - **`open_terminal.py`**:
-  Resolves the current or last visited directory in the Nemo file manager (via active/open window extraction with clipboard preservation and persistent caching) or active terminal session, launching the new terminal directly inside that folder.
+  Resolves the current or last visited directory in any active or open file manager (Thunar, Nemo, Nautilus, Caja, PCManFM) or active terminal session (via deep process cwd inspection, workspace and stacking prioritization, clipboard preservation, and persistent caching), launching the terminal directly into that directory.
