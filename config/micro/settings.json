@@ -19,5 +19,8 @@
     "softwrap": true,
     "statusformatl": "$(filename) $(modified)| $(line):$(col) | $(opt:filetype) | $(opt:encoding)",
     "tabsize": 4,
-    "tabstospaces": true
+    "tabstospaces": true,
+    "wordwrap": true,
+    "linter": true,
+    "autocomplete_tooltip.EnableCursorUpDown": true
 }

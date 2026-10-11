@@ -31,11 +31,12 @@ cp "$SCRIPT_DIR/config/zsh/zshenv" "$HOME/.zshenv" 2>/dev/null || true
 mkdir -p "$HOME/.config/powershell"
 cp "$SCRIPT_DIR/config/powershell/Microsoft.PowerShell_profile.ps1" "$HOME/.config/powershell/Microsoft.PowerShell_profile.ps1" 2>/dev/null || true
 
-# Copy Micro Editor Config & Plugins
-mkdir -p "$HOME/.config/micro/plug"
+# Copy Micro Editor Config, Plugins & Colorschemes
+mkdir -p "$HOME/.config/micro/plug" "$HOME/.config/micro/colorschemes"
 cp "$SCRIPT_DIR/config/micro/bindings.json" "$HOME/.config/micro/bindings.json" 2>/dev/null || true
 cp "$SCRIPT_DIR/config/micro/settings.json" "$HOME/.config/micro/settings.json" 2>/dev/null || true
 cp -r "$SCRIPT_DIR/config/micro/plug/"* "$HOME/.config/micro/plug/" 2>/dev/null || true
+cp -r "$SCRIPT_DIR/config/micro/colorschemes/"* "$HOME/.config/micro/colorschemes/" 2>/dev/null || true
 
 # Copy Barrier Config
 mkdir -p "$HOME/.config/Debauchee"

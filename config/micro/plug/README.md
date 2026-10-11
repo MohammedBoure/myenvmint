@@ -18,3 +18,7 @@ This directory contains installed productivity plugins for the Micro text editor
 
 - **`snippets/`**:
   Code snippets manager providing tab-triggered snippet expansion across dozens of programming languages.
+
+- **`micro-autocomplete-tooltip/`**:
+  Interactive dropdown/tooltip completion plugin for Micro. When pressing `Tab` in the buffer or command prompt (`Ctrl-e`), renders an inline tooltip menu displaying candidate matches, navigable with `Up` and `Down` arrow keys.
+
