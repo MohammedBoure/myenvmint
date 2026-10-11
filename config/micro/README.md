@@ -6,14 +6,18 @@ This directory contains configuration files, keybindings, and productivity plugi
 
 - **`bindings.json`**:
   Custom keybinding mappings for Micro:
+  - `Shift + Arrows` (`ShiftUp`, `ShiftDown`, `ShiftLeft`, `ShiftRight` and raw terminal escape sequences `\e[1;2A-D` / `\e[2A-D` / `\e[a-d`): Interactive text selection in all directions.
+  - `Ctrl + Shift + Arrows` (`CtrlShiftLeft`, `CtrlShiftRight` and `\e[1;6C-D`): Word-by-word text selection.
+  - `Shift + Home` / `Shift + End`: Select to beginning/end of line.
   - `Ctrl-b`: Toggles the file manager tree sidebar (`tree` command).
   - `Ctrl-p`: Triggers the `fzf` fuzzy file searcher for quick file opening.
-  - `CtrlLeft` / `CtrlRight`: Word-by-word cursor navigation.
+  - `CtrlLeft` / `CtrlRight`, `Alt-Left` / `Alt-Right`: Word-by-word cursor navigation.
   - `Ctrl-Backspace`, `Alt-Backspace`, `Ctrl-w`, `Ctrl-h`: Deletes the previous word for rapid terminal text editing.
 
 - **`settings.json`**:
-  Optimized terminal & SSH editor settings:
-  - `"clipboard": "terminal"`: Uses terminal OSC 52 clipboard sequences, resolving SSH clipboard and staircase pasting issues.
+  Optimized terminal editor settings:
+  - `"clipboard": "external"`: Integrates with the system X11 clipboard via `xclip`, ensuring reliable `Ctrl-c` copy and `Ctrl-v` paste operations between Micro and external applications.
+  - `"smartpaste": true`: Intelligently formats leading indentation when pasting multi-line text blocks.
   - `"autoindent": false`, `"keepautoindent": false`: Prevents compound indentation staircasing during external terminal/SSH pastes.
   - `"colorscheme": "monokai"`: High-contrast developer-friendly color theme.
   - `"cursorline": true`, `"ruler": true`, `"scrollbar": true`: Visual navigation cues and line numbering.

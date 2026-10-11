@@ -1,7 +1,7 @@
 {
     "autoclose": true,
     "autoindent": false,
-    "clipboard": "terminal",
+    "clipboard": "external",
     "colorscheme": "monokai",
     "cursorline": true,
     "fastdirty": true,
@@ -15,6 +15,7 @@
     "ruler": true,
     "saveundo": true,
     "scrollbar": true,
+    "smartpaste": true,
     "softwrap": true,
     "statusformatl": "$(filename) $(modified)| $(line):$(col) | $(opt:filetype) | $(opt:encoding)",
     "tabsize": 4,
