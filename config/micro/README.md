@@ -12,6 +12,9 @@ This directory contains configuration files, keybindings, and productivity plugi
   - `Ctrl-b`: Toggles the file manager tree sidebar (`tree` command).
   - `Ctrl-p`: Triggers the `fzf` fuzzy file searcher for quick file opening.
   - `Alt-l`: Triggers the interactive code linter (`command:lint`) to check syntax/compilation errors.
+  - `Alt-f` / `Alt-F`: Triggers the automated code positioning and formatting plugin (`command:format`) for the active selection (part of code) or the whole file across Python, C/C++, Rust, and other languages.
+  - `Tab`: Autocompletes tooltip candidates or indents the selected part of code (`IndentSelection`).
+  - `Shift-Tab` (`Backtab`, `\e[Z`): Outdents the selected part of code or current line (`OutdentSelection|OutdentLine`).
   - `CtrlLeft` / `CtrlRight`, `Alt-Left` / `Alt-Right`: Word-by-word cursor navigation.
   - `Ctrl-Backspace`, `Alt-Backspace`, `Ctrl-w`, `Ctrl-h`: Deletes the previous word for rapid terminal text editing.
 
@@ -19,7 +22,8 @@ This directory contains configuration files, keybindings, and productivity plugi
   Optimized terminal editor settings:
   - `"clipboard": "external"`: Integrates with the system X11 clipboard via `xclip`, ensuring reliable `Ctrl-c` copy and `Ctrl-v` paste operations between Micro and external applications.
   - `"smartpaste": true`: Intelligently formats leading indentation when pasting multi-line text blocks.
-  - `"autoindent": false`, `"keepautoindent": false`: Prevents compound indentation staircasing during external terminal/SSH pastes.
+  - `"autoindent": true`, `"keepautoindent": true`: Automatically aligns and positions new lines according to block indentation when writing clean code across Python, C, Rust, etc.
+  - `"autofmt.onsave": true`: Automatically formats and sets clean code positioning on file save (`Ctrl-s`).
   - `"colorscheme": "monokai"`: High-contrast developer-friendly color theme.
   - `"cursorline": true`, `"ruler": true`, `"scrollbar": true`: Visual navigation cues and line numbering.
   - `"hlsearch": true`, `"incsearch": true`: Incremental and highlighted search matching.
@@ -38,5 +42,6 @@ This directory contains configuration files, keybindings, and productivity plugi
   Directory containing custom colorschemes (`monokai.micro`), providing dedicated styling for the autocomplete tooltip popup window and syntax/linter gutter highlights.
 
 - **`plug/`**:
-  Directory containing productivity plugins (`filemanager`, `editorconfig`, `fzf`, `bookmark`, `snippets`, `micro-autocomplete-tooltip`).
+  Directory containing productivity plugins (`filemanager`, `editorconfig`, `fzf`, `bookmark`, `snippets`, `micro-autocomplete-tooltip`, `autofmt`).
+
 

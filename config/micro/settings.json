@@ -1,6 +1,6 @@
 {
     "autoclose": true,
-    "autoindent": false,
+    "autoindent": true,
     "clipboard": "external",
     "colorscheme": "monokai",
     "cursorline": true,
@@ -8,7 +8,7 @@
     "filemanager-openonstart": false,
     "hlsearch": true,
     "incsearch": true,
-    "keepautoindent": false,
+    "keepautoindent": true,
     "mouse": true,
     "openbftype": "tab",
     "rmtrailingws": true,
@@ -22,5 +22,6 @@
     "tabstospaces": true,
     "wordwrap": true,
     "linter": true,
-    "autocomplete_tooltip.EnableCursorUpDown": true
+    "autocomplete_tooltip.EnableCursorUpDown": true,
+    "autofmt.onsave": true
 }

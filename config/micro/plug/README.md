@@ -22,3 +22,7 @@ This directory contains installed productivity plugins for the Micro text editor
 - **`micro-autocomplete-tooltip/`**:
   Interactive dropdown/tooltip completion plugin for Micro. When pressing `Tab` in the buffer or command prompt (`Ctrl-e`), renders an inline tooltip menu displaying candidate matches, navigable with `Up` and `Down` arrow keys.
 
+- **`autofmt/`**:
+  Automated code positioning and formatting plugin for Micro supporting Python, C/C++, Rust, and other languages. Supports partial-selection formatting, whole-file formatting, and automatic formatting on save.
+
+

@@ -1,0 +1,13 @@
+[{
+  "Name": "autofmt",
+  "Description": "Plugin to auto-format and position code (selection or full file) for Python, C, Rust, and more",
+  "Tags": ["formatter", "clean-code", "python", "c", "rust"],
+  "Versions": [
+    {
+      "Version": "2.0.0",
+      "Require": {
+        "micro": ">=2.0.0"
+      }
+    }
+  ]
+}]
