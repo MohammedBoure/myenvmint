@@ -36,6 +36,76 @@ local function toolExists(name)
     return (res == 0 or res == true)
 end
 
+-- Extracts leading whitespace from a string
+local function getLeadingWhitespace(line)
+    return line:match("^(%s*)") or ""
+end
+
+-- Smart syntax-aware indentation on Enter
+function onInsertNewline(bp)
+    local enabled = bp.Buf.Settings["autofmt.smartindent"]
+    if enabled == false then return end
+
+    local y = bp.Cursor.Y
+    if y <= 0 then return end
+
+    local prevLine = bp.Buf:Line(y - 1)
+    local curLine = bp.Buf:Line(y)
+
+    local prevWs = getLeadingWhitespace(prevLine)
+    local curWs = getLeadingWhitespace(curLine)
+
+    -- If current line is already more indented than previous line (e.g. by autoclose), do nothing
+    if curWs:len() > prevWs:len() then
+        return
+    end
+
+    -- Clean the previous line: strip comments and trailing whitespace
+    local clean = prevLine
+    local ft = bp.Buf:FileType()
+    if ft == "python" or ft == "ruby" or ft == "shell" or ft == "bash" or ft == "yaml" then
+        clean = clean:gsub("#.*$", "")
+    else
+        clean = clean:gsub("//.*$", "")
+    end
+    clean = clean:match("^(.-)%s*$") or ""
+    if clean == "" then return end
+
+    local lastChar = clean:sub(-1)
+    local shouldIndent = false
+
+    -- Block opening with braces, parens, brackets (C, C++, Rust, Go, JS, TS, etc.)
+    if lastChar == "{" or lastChar == "(" or lastChar == "[" then
+        shouldIndent = true
+    elseif lastChar == ":" then
+        -- Python block triggers
+        if ft == "python" then
+            if clean:match("^%s*if%s") or
+               clean:match("^%s*elif%s") or
+               clean:match("^%s*else%s*:") or
+               clean:match("^%s*for%s") or
+               clean:match("^%s*while%s") or
+               clean:match("^%s*def%s") or
+               clean:match("^%s*class%s") or
+               clean:match("^%s*with%s") or
+               clean:match("^%s*try%s*:") or
+               clean:match("^%s*except") or
+               clean:match("^%s*finally%s*:") or
+               clean:match("^%s*match%s") or
+               clean:match("^%s*case%s") or
+               clean:match("^%s*async%s") then
+                shouldIndent = true
+            end
+        else
+            shouldIndent = true
+        end
+    end
+
+    if shouldIndent then
+        bp:IndentLine()
+    end
+end
+
 -- Formats a selected part of code (lines startLine to endLine)
 local function formatRange(bp, startLine, endLine)
     local ft = bp.Buf:FileType()
@@ -221,6 +291,7 @@ end
 
 function init()
     config.RegisterCommonOption("autofmt", "onsave", true)
+    config.RegisterCommonOption("autofmt", "smartindent", true)
     config.RegisterCommonOption("autofmt", "python", "ruff")
     config.RegisterCommonOption("autofmt", "c", "clang-format")
     config.RegisterCommonOption("autofmt", "rust", "rustfmt")
