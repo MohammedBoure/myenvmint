@@ -25,4 +25,8 @@ This directory contains installed productivity plugins for the Micro text editor
 - **`autofmt/`**:
   Automated code positioning and formatting plugin for Micro supporting Python, C/C++, Rust, and other languages. Supports partial-selection formatting, whole-file formatting, and automatic formatting on save.
 
+- **`lsp/`**:
+  Language Server Protocol (LSP) client for Micro. Integrates with industry-standard language servers (`pylsp` / `pyright` for Python, `clangd` for C/C++, `rust-analyzer` for Rust) to deliver professional code completion (`Ctrl-Space`, `Tab`), definition navigation (`Alt-d`), type hover documentation (`Alt-k`), and references lookup (`Alt-r`).
+
+
 

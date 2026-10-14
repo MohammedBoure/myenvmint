@@ -13,6 +13,10 @@ This directory contains configuration files, keybindings, and productivity plugi
   - `Ctrl-p`: Triggers the `fzf` fuzzy file searcher for quick file opening.
   - `Alt-l`: Triggers the interactive code linter (`command:lint`) to check syntax/compilation errors.
   - `Alt-f` / `Alt-F`: Triggers the automated code positioning and formatting plugin (`command:format`) for the active selection (part of code) or the whole file across Python, C/C++, Rust, and other languages.
+  - `Ctrl-Space`: Triggers real-time intelligent code autocompletion from the Language Server (`command:lsp completion`).
+  - `Alt-k`: Displays documentation hover tooltips and type definitions (`command:lsp hover`).
+  - `Alt-d`: Jumps directly to the declaration or definition of symbols (`command:lsp definition`).
+  - `Alt-r`: Searches all workspace usages and references of symbols (`command:lsp references`).
   - `Tab`: Autocompletes tooltip candidates or indents the selected part of code (`IndentSelection`).
   - `Shift-Tab` (`Backtab`, `\e[Z`): Outdents the selected part of code or current line (`OutdentSelection|OutdentLine`).
   - `CtrlLeft` / `CtrlRight`, `Alt-Left` / `Alt-Right`: Word-by-word cursor navigation.
@@ -24,6 +28,8 @@ This directory contains configuration files, keybindings, and productivity plugi
   - `"smartpaste": true`: Intelligently formats leading indentation when pasting multi-line text blocks.
   - `"autoindent": true`, `"keepautoindent": true`: Automatically aligns and positions new lines according to block indentation when writing clean code across Python, C, Rust, etc.
   - `"autofmt.onsave": true`: Automatically formats and sets clean code positioning on file save (`Ctrl-s`).
+  - `"lsp.server": "python=pylsp,c=clangd,c++=clangd,rust=rust-analyzer"`: Configures high-performance language servers for Python (`pylsp`), C/C++ (`clangd`), and Rust (`rust-analyzer`).
+  - `"lsp.tabcompletion": true`: Integrates Language Server suggestions directly with `Tab` completion.
   - `"colorscheme": "monokai"`: High-contrast developer-friendly color theme.
   - `"cursorline": true`, `"ruler": true`, `"scrollbar": true`: Visual navigation cues and line numbering.
   - `"hlsearch": true`, `"incsearch": true`: Incremental and highlighted search matching.
@@ -42,6 +48,7 @@ This directory contains configuration files, keybindings, and productivity plugi
   Directory containing custom colorschemes (`monokai.micro`), providing dedicated styling for the autocomplete tooltip popup window and syntax/linter gutter highlights.
 
 - **`plug/`**:
-  Directory containing productivity plugins (`filemanager`, `editorconfig`, `fzf`, `bookmark`, `snippets`, `micro-autocomplete-tooltip`, `autofmt`).
+  Directory containing productivity plugins (`filemanager`, `editorconfig`, `fzf`, `bookmark`, `snippets`, `micro-autocomplete-tooltip`, `autofmt`, `lsp`).
+
 
 

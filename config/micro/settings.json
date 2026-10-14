@@ -23,5 +23,9 @@
     "wordwrap": true,
     "linter": true,
     "autocomplete_tooltip.EnableCursorUpDown": true,
-    "autofmt.onsave": true
+    "autofmt.onsave": true,
+    "lsp.server": "python=pylsp,c=clangd,c++=clangd,rust=rust-analyzer",
+    "lsp.tabcompletion": true,
+    "lsp.autocompleteDetails": false,
+    "lsp.formatOnSave": false
 }
