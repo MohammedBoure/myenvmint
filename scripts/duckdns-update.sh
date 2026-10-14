@@ -29,15 +29,18 @@ LOG_FILE="$LOG_DIR/duckdns.log"
 TIMESTAMP="$(date '+%Y-%m-%d %H:%M:%S')"
 
 # Perform update request to DuckDNS (omitting IP allows DuckDNS to auto-detect public IPv4)
-RESPONSE=$(curl -fsS -m 30 "https://www.duckdns.org/update?domains=${DUCKDNS_DOMAIN}&token=${DUCKDNS_TOKEN}&ip=" 2>&1)
+# Retry up to 3 times to handle transient network delays during boot or resume
+CURL_OUTPUT=""
+CURL_EXIT=0
+CURL_OUTPUT=$(curl -fsS --retry 3 --retry-delay 5 --retry-connrefused -m 30 "https://www.duckdns.org/update?domains=${DUCKDNS_DOMAIN}&token=${DUCKDNS_TOKEN}&ip=" 2>&1) || CURL_EXIT=$?
 
-if [ "$RESPONSE" = "OK" ]; then
+if [ "$CURL_EXIT" -eq 0 ] && [ "$CURL_OUTPUT" = "OK" ]; then
     MSG="[$TIMESTAMP] DuckDNS IP updated successfully for domain: ${DUCKDNS_DOMAIN}.duckdns.org (Response: OK)"
     echo "$MSG"
     echo "$MSG" >> "$LOG_FILE"
     exit 0
 else
-    MSG="[$TIMESTAMP] [DuckDNS Error] Update failed for domain: ${DUCKDNS_DOMAIN}.duckdns.org (Response: $RESPONSE)"
+    MSG="[$TIMESTAMP] [DuckDNS Error] Update failed for domain: ${DUCKDNS_DOMAIN}.duckdns.org (Exit code: $CURL_EXIT, Response: $CURL_OUTPUT)"
     echo "$MSG" >&2
     echo "$MSG" >> "$LOG_FILE"
     exit 1

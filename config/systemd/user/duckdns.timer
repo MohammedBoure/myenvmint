@@ -2,8 +2,8 @@
 Description=Run DuckDNS IP Update every 5 minutes
 
 [Timer]
-OnBootSec=1min
-OnUnitActiveSec=5min
+OnStartupSec=1min
+OnCalendar=*:0/5
 Persistent=true
 
 [Install]
