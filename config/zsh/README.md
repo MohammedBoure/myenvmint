@@ -16,5 +16,7 @@ This directory houses the user shell configuration for Zsh.
   - Integration with `fzf` for fuzzy popup command history (`Ctrl+R`) and directory navigation (`Alt+C`).
   - Desktop opener aliases: `start`, `open`, and `explorer` to instantly open the current terminal path in the GUI file manager (Nemo/Thunar).
   - Starship prompt initialization hook (`eval "$(starship init zsh)"`).
+  - Zellij Terminal Multiplexer auto-completion integration (`eval "$(zellij setup --generate-completion zsh)"`).
 - **`zshenv`**:
+
   Pre-initialization environment setting `skip_global_compinit=1` to prevent Ubuntu global shell profiles from conflicting with modern completion frameworks.

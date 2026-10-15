@@ -53,6 +53,15 @@ if ! command -v lazygit >/dev/null 2>&1; then
     rm -f lazygit lazygit.tar.gz
 fi
 
+# 5b. Install Zellij if missing
+if ! command -v zellij >/dev/null 2>&1; then
+    echo "==> Step 4b: Installing Zellij Terminal Multiplexer..."
+    mkdir -p "$HOME/.local/bin"
+    curl -sL "https://github.com/zellij-org/zellij/releases/latest/download/zellij-x86_64-unknown-linux-musl.tar.gz" | tar -xz -C "$HOME/.local/bin"
+    chmod +x "$HOME/.local/bin/zellij"
+fi
+
+
 # 6. Clone Zsh plugins if missing
 echo "==> Step 5: Setting up Zsh plugins..."
 mkdir -p "$HOME/.zsh"
@@ -86,7 +95,9 @@ mkdir -p "$HOME/.config/Debauchee"
 mkdir -p "$HOME/.config/lazygit"
 mkdir -p "$HOME/.config/ranger"
 mkdir -p "$HOME/.config/xed"
+mkdir -p "$HOME/.config/zellij"
 mkdir -p "$HOME/.config/myenvmint"
+
 mkdir -p "$HOME/.config/cinnamon/spices"
 mkdir -p "$HOME/.config/xfce4/xfconf/xfce-perchannel-xml"
 mkdir -p "$HOME/.config/xfce4/panel"
@@ -122,6 +133,8 @@ cp "$SCRIPT_DIR/config/barrier/Barrier.conf" "$HOME/.config/Debauchee/Barrier.co
 cp -r "$SCRIPT_DIR/config/lazygit/"* "$HOME/.config/lazygit/" 2>/dev/null || true
 cp -r "$SCRIPT_DIR/config/ranger/"* "$HOME/.config/ranger/" 2>/dev/null || true
 cp -r "$SCRIPT_DIR/config/xed/"* "$HOME/.config/xed/" 2>/dev/null || true
+cp -r "$SCRIPT_DIR/config/zellij/"* "$HOME/.config/zellij/" 2>/dev/null || true
+
 
 # Copy Custom Desktop Themes & GTK3 CSS (High-Contrast Window Borders)
 mkdir -p "$HOME/.themes" "$HOME/.config/gtk-3.0"

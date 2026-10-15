@@ -138,3 +138,11 @@ alias explorer='start'
 if command -v starship >/dev/null 2>&1; then
     eval "$(starship init zsh)"
 fi
+
+# ------------------------------------------------------------------------------
+# 10. Zellij Auto-Completion
+# ------------------------------------------------------------------------------
+if command -v zellij >/dev/null 2>&1; then
+    eval "$(zellij setup --generate-completion zsh)"
+fi
+

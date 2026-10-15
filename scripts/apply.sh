@@ -48,11 +48,13 @@ cp -r "$SCRIPT_DIR/config/micro/colorschemes/"* "$HOME/.config/micro/colorscheme
 mkdir -p "$HOME/.config/Debauchee"
 cp "$SCRIPT_DIR/config/barrier/Barrier.conf" "$HOME/.config/Debauchee/Barrier.conf" 2>/dev/null || true
 
-# Copy Lazygit & Ranger & Xed
-mkdir -p "$HOME/.config/lazygit" "$HOME/.config/ranger" "$HOME/.config/xed"
+# Copy Lazygit & Ranger & Xed & Zellij
+mkdir -p "$HOME/.config/lazygit" "$HOME/.config/ranger" "$HOME/.config/xed" "$HOME/.config/zellij"
 cp -r "$SCRIPT_DIR/config/lazygit/"* "$HOME/.config/lazygit/" 2>/dev/null || true
 cp -r "$SCRIPT_DIR/config/ranger/"* "$HOME/.config/ranger/" 2>/dev/null || true
 cp -r "$SCRIPT_DIR/config/xed/"* "$HOME/.config/xed/" 2>/dev/null || true
+cp -r "$SCRIPT_DIR/config/zellij/"* "$HOME/.config/zellij/" 2>/dev/null || true
+
 
 # Copy Custom Desktop Themes & GTK3 CSS (High-Contrast Window Borders)
 mkdir -p "$HOME/.themes" "$HOME/.config/gtk-3.0"
