@@ -4,17 +4,21 @@ Speed Translation Tool for MyEnvMint
 Global shortcut: Win + Shift + X (Super + Shift + X)
 
 Displays a quick text entry dialog (Zenity) where the user can type Arabic text.
+Works seamlessly across all workspaces (never gets pinned to a foreign workspace).
+
 Upon pressing Enter:
 1. Normalizes the text (including translating '٩' to 'ج' according to environment rules).
 2. Translates the text from Arabic (or auto-detected language) to English via Google Translate API.
-3. Copies the translation to both system clipboard and primary selection buffers (xclip).
-4. Restores focus to the previously active window and automatically pastes the translated English text (if triggered via dialog).
+3. Copies the translation to the system clipboard (xclip).
+4. Restores focus to the target window on the CURRENT workspace and automatically pastes the translated English text (if triggered via dialog).
 5. Displays a desktop notification confirming the translation and clipboard status.
 """
 
+import os
 import sys
 import time
 import json
+import threading
 import urllib.parse
 import urllib.request
 import subprocess
@@ -26,16 +30,106 @@ TERMINAL_CLASSES = (
 )
 
 
-def get_active_window():
-    """Retrieve the currently focused window ID before the dialog is launched."""
+def get_clean_env():
+    """Return environment stripped of terminal-specific window tracking IDs."""
+    env = os.environ.copy()
+    env.pop('WINDOWID', None)
+    env.pop('DESKTOP_STARTUP_ID', None)
+    return env
+
+
+def get_current_desktop():
+    """Retrieve the current active workspace index (0-indexed)."""
     try:
         out = subprocess.check_output(
+            ['xdotool', 'get_desktop'],
+            stderr=subprocess.DEVNULL
+        ).decode().strip()
+        return int(out)
+    except Exception:
+        pass
+    try:
+        out = subprocess.check_output(
+            ['xprop', '-root', '_NET_CURRENT_DESKTOP'],
+            stderr=subprocess.DEVNULL
+        ).decode()
+        for tok in out.split():
+            if tok.isdigit():
+                return int(tok)
+    except Exception:
+        pass
+    return 0
+
+
+def get_window_desktop(win_id):
+    """Retrieve the workspace index of a given window."""
+    if not win_id:
+        return -1
+    try:
+        out = subprocess.check_output(
+            ['xdotool', 'get_desktop_for_window', str(win_id)],
+            stderr=subprocess.DEVNULL
+        ).decode().strip()
+        return int(out)
+    except Exception:
+        pass
+    try:
+        out = subprocess.check_output(
+            ['xprop', '-id', str(win_id), '_NET_WM_DESKTOP'],
+            stderr=subprocess.DEVNULL
+        ).decode()
+        for tok in out.split():
+            if tok.isdigit():
+                return int(tok)
+    except Exception:
+        pass
+    return -1
+
+
+def is_valid_client_window(win_id):
+    """Check if the window is a valid application window (not desktop or panel)."""
+    if not win_id:
+        return False
+    try:
+        wm_class = subprocess.check_output(
+            ['xprop', '-id', str(win_id), 'WM_CLASS'],
+            stderr=subprocess.DEVNULL
+        ).decode().lower()
+        ignored = ['xfce4-panel', 'desktop', 'polybar', 'zenity']
+        if any(ig in wm_class for ig in ignored):
+            return False
+        return True
+    except Exception:
+        return False
+
+
+def get_target_window_on_current_desktop(cur_desk):
+    """Find active or topmost client window strictly on the current workspace."""
+    # 1. Check current active window
+    try:
+        act = subprocess.check_output(
             ['xdotool', 'getactivewindow'],
             stderr=subprocess.DEVNULL
         ).decode().strip()
-        return out if out else None
+        if act and get_window_desktop(act) == cur_desk and is_valid_client_window(act):
+            return act
     except Exception:
-        return None
+        pass
+
+    # 2. Check topmost client on cur_desk from wmctrl stack
+    try:
+        out = subprocess.check_output(['wmctrl', '-l'], stderr=subprocess.DEVNULL).decode()
+        for line in reversed(out.splitlines()):
+            parts = line.split(maxsplit=4)
+            wid_str = parts[0]
+            d = int(parts[1]) if parts[1].lstrip('-').isdigit() else -1
+            wid_dec = str(int(wid_str, 16))
+            if d == cur_desk and is_valid_client_window(wid_dec):
+                return wid_dec
+    except Exception:
+        pass
+
+    return None
 
 
 def is_terminal_window(win_id):
@@ -44,7 +138,7 @@ def is_terminal_window(win_id):
         return False
     try:
         out = subprocess.check_output(
-            ['xprop', '-id', win_id, 'WM_CLASS'],
+            ['xprop', '-id', str(win_id), 'WM_CLASS'],
             stderr=subprocess.DEVNULL
         ).decode().lower()
         return any(term in out for term in TERMINAL_CLASSES)
@@ -52,8 +146,33 @@ def is_terminal_window(win_id):
         return False
 
 
-def prompt_entry_dialog():
-    """Display the Zenity input dialog for fast text entry."""
+def pin_dialog_to_current_desktop(cur_desk):
+    """Ensure the Zenity dialog is placed and focused on the current active workspace."""
+    for _ in range(30):  # poll up to 1.5 seconds
+        try:
+            out = subprocess.check_output(['wmctrl', '-l'], stderr=subprocess.DEVNULL).decode()
+            for line in out.splitlines():
+                if 'Speed Translation' in line:
+                    wid = line.split()[0]
+                    # Assign strictly to current workspace
+                    subprocess.run(['wmctrl', '-i', '-r', wid, '-t', str(cur_desk)], stderr=subprocess.DEVNULL)
+                    # Keep on top
+                    subprocess.run(['wmctrl', '-i', '-r', wid, '-b', 'add,above'], stderr=subprocess.DEVNULL)
+                    # Activate and focus
+                    subprocess.run(['wmctrl', '-i', '-a', wid], stderr=subprocess.DEVNULL)
+                    subprocess.run(['xdotool', 'windowactivate', wid], stderr=subprocess.DEVNULL)
+                    return
+        except Exception:
+            pass
+        time.sleep(0.05)
+
+
+def prompt_entry_dialog(cur_desk):
+    """Display the Zenity input dialog for fast text entry on the current workspace."""
+    # Launch watcher thread to immediately bind dialog to current workspace
+    watcher = threading.Thread(target=pin_dialog_to_current_desktop, args=(cur_desk,), daemon=True)
+    watcher.start()
+
     try:
         cmd = [
             'zenity',
@@ -64,7 +183,13 @@ def prompt_entry_dialog():
             '--ok-label=Translate & Paste',
             '--cancel-label=Cancel'
         ]
-        proc = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True)
+        proc = subprocess.run(
+            cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+            text=True,
+            env=get_clean_env()
+        )
         if proc.returncode == 0:
             return proc.stdout.strip()
         return None
@@ -78,7 +203,8 @@ def copy_to_clipboard(text):
         proc = subprocess.Popen(
             ['xclip', '-selection', 'clipboard'],
             stdin=subprocess.PIPE,
-            stderr=subprocess.DEVNULL
+            stderr=subprocess.DEVNULL,
+            env=get_clean_env()
         )
         proc.communicate(input=text.encode('utf-8'))
     except Exception:
@@ -116,19 +242,18 @@ def send_notification(title, message, is_error=False):
             '-t', '3500',
             title,
             message
-        ], stderr=subprocess.DEVNULL)
+        ], stderr=subprocess.DEVNULL, env=get_clean_env())
     except Exception:
         pass
 
 
 def paste_to_window(win_id, is_term):
-    """Refocus target window and simulate paste shortcut."""
+    """Refocus target window on current workspace and simulate paste shortcut."""
     if not win_id:
         return
     try:
-        # Give a small pause for Zenity to completely unmap and WM to restore focus
         time.sleep(0.12)
-        subprocess.run(['xdotool', 'windowactivate', '--sync', win_id], stderr=subprocess.DEVNULL)
+        subprocess.run(['xdotool', 'windowactivate', '--sync', str(win_id)], stderr=subprocess.DEVNULL)
         time.sleep(0.08)
 
         # In terminals, Ctrl+Shift+V pastes from clipboard; in GUI apps, Ctrl+V
@@ -141,17 +266,18 @@ def paste_to_window(win_id, is_term):
 
 
 def main():
-    # 1. Capture previously active window before any dialog appears
-    prev_win = get_active_window()
-    is_term = is_terminal_window(prev_win)
+    # 1. Resolve current active workspace and target window strictly on this workspace
+    cur_desk = get_current_desktop()
+    target_win = get_target_window_on_current_desktop(cur_desk)
+    is_term = is_terminal_window(target_win) if target_win else False
     is_dialog_mode = False
 
-    # 2. Get input text (either CLI argument or Zenity dialog)
+    # 2. Get input text (either CLI argument or Zenity dialog on current workspace)
     if len(sys.argv) > 1:
         raw_input = ' '.join(sys.argv[1:]).strip()
     else:
         is_dialog_mode = True
-        raw_input = prompt_entry_dialog()
+        raw_input = prompt_entry_dialog(cur_desk)
 
     if not raw_input:
         sys.exit(0)
@@ -160,7 +286,6 @@ def main():
     try:
         normalized_input, translated = translate_text(raw_input)
     except Exception as exc:
-        # On translation failure, copy raw text to clipboard and notify
         copy_to_clipboard(raw_input)
         send_notification('Speed Translation Error', f'Failed to translate: {exc}\nOriginal text copied to clipboard.', is_error=True)
         sys.exit(1)
@@ -171,9 +296,9 @@ def main():
     # 4. Copy to clipboard
     copy_to_clipboard(translated)
 
-    # 5. If triggered via dialog, auto-paste into previous window
+    # 5. If triggered via dialog, auto-paste into target window on this workspace
     if is_dialog_mode:
-        paste_to_window(prev_win, is_term)
+        paste_to_window(target_win, is_term)
     else:
         print(translated)
 

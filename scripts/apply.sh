@@ -8,6 +8,8 @@ set -e
 
 export DISPLAY="${DISPLAY:-:0}"
 export XAUTHORITY="${XAUTHORITY:-$HOME/.Xauthority}"
+unset WINDOWID
+unset DESKTOP_STARTUP_ID
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 echo "==> Synchronizing configuration files from $SCRIPT_DIR..."

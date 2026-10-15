@@ -6,6 +6,8 @@
 
 export DISPLAY="${DISPLAY:-:0}"
 export XAUTHORITY="${XAUTHORITY:-$HOME/.Xauthority}"
+unset WINDOWID
+unset DESKTOP_STARTUP_ID
 
 # Wait for X display to become ready
 count=0
