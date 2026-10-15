@@ -30,7 +30,7 @@ setxkbmap -option "" -layout "fr,ara" -variant "azerty," -option "grp:win_space_
 
 # 2b. Apply Arabic Keycode Corrections for Barrier & AZERTY (Jeem and Thal)
 xmodmap -e "keycode 18 = ccedilla 9 Arabic_jeem parenright asciicircum NoSymbol Arabic_jeem U062C" 2>/dev/null || true
-xmodmap -e "keycode 51 = asterisk mu Arabic_thal bar asterisk mu Arabic_thal U0630" 2>/dev/null || true
+xmodmap -e "keycode 51 = asterisk mu Arabic_thal bar" 2>/dev/null || true
 xmodmap -e "keycode 197 = Arabic_jeem Arabic_jeem Arabic_jeem Arabic_jeem" 2>/dev/null || true
 xmodmap -e "keycode 202 = Arabic_thal Arabic_thal Arabic_thal Arabic_thal" 2>/dev/null || true
 systemctl --user restart barrier-client.service 2>/dev/null || true
@@ -39,8 +39,10 @@ systemctl --user restart barrier-client.service 2>/dev/null || true
 if command -v xfconf-query >/dev/null 2>&1; then
     xfconf-query -c xfce4-keyboard-shortcuts -p "/commands/custom/Super_L" -r 2>/dev/null || true
     xfconf-query -c xfce4-keyboard-shortcuts -p "/commands/custom/<Super>F1" -n -t string -s "xfce4-popup-whiskermenu" 2>/dev/null || true
-    for k in KP_End KP_Down KP_Next KP_Left KP_Begin KP_Right KP_Home KP_Up KP_Page_Up KP_Insert; do
-        xfconf-query -c xfce4-keyboard-shortcuts -p "/xfwm4/custom/<Super>$k" -r 2>/dev/null || true
+    for k in KP_1 KP_2 KP_3 KP_4 KP_5 KP_6 KP_7 KP_8 KP_9 KP_0 KP_End KP_Down KP_Next KP_Left KP_Begin KP_Right KP_Home KP_Up KP_Prior KP_Insert; do
+        xfconf-query -c xfce4-keyboard-shortcuts -p "/xfwm4/custom/<Super>$k" -n -t string -s "" 2>/dev/null || true
+        xfconf-query -c xfce4-keyboard-shortcuts -p "/xfwm4/custom/<Alt><Control>$k" -n -t string -s "" 2>/dev/null || true
+        xfconf-query -c xfce4-keyboard-shortcuts -p "/xfwm4/custom/<Primary><Alt>$k" -n -t string -s "" 2>/dev/null || true
     done
     xfconf-query -c xfce4-keyboard-shortcuts -p "/commands/custom/<Super><Shift>s" -r 2>/dev/null || true
     xfconf-query -c xfce4-keyboard-shortcuts -p "/commands/custom/<Super><Shift>S" -r 2>/dev/null || true

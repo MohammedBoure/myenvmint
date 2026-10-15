@@ -109,8 +109,10 @@ if command -v xfconf-query >/dev/null 2>&1; then
     xfconf-query -c keyboard-layout -p /Default/XkbOptions/Group -s "grp:win_space_toggle" 2>/dev/null || true
     xfconf-query -c xfce4-keyboard-shortcuts -p "/commands/custom/Super_L" -r 2>/dev/null || true
     xfconf-query -c xfce4-keyboard-shortcuts -p "/commands/custom/<Super>F1" -n -t string -s "xfce4-popup-whiskermenu" 2>/dev/null || true
-    for k in KP_End KP_Down KP_Next KP_Left KP_Begin KP_Right KP_Home KP_Up KP_Page_Up KP_Insert; do
-        xfconf-query -c xfce4-keyboard-shortcuts -p "/xfwm4/custom/<Super>$k" -r 2>/dev/null || true
+    for k in KP_1 KP_2 KP_3 KP_4 KP_5 KP_6 KP_7 KP_8 KP_9 KP_0 KP_End KP_Down KP_Next KP_Left KP_Begin KP_Right KP_Home KP_Up KP_Prior KP_Insert; do
+        xfconf-query -c xfce4-keyboard-shortcuts -p "/xfwm4/custom/<Super>$k" -n -t string -s "" 2>/dev/null || true
+        xfconf-query -c xfce4-keyboard-shortcuts -p "/xfwm4/custom/<Alt><Control>$k" -n -t string -s "" 2>/dev/null || true
+        xfconf-query -c xfce4-keyboard-shortcuts -p "/xfwm4/custom/<Primary><Alt>$k" -n -t string -s "" 2>/dev/null || true
     done
     xfconf-query -c xfce4-keyboard-shortcuts -p "/commands/custom/<Super><Shift>s" -r 2>/dev/null || true
     xfconf-query -c xfce4-keyboard-shortcuts -p "/commands/custom/<Super><Shift>S" -r 2>/dev/null || true
