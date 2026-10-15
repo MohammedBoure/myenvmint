@@ -13,8 +13,16 @@ unset DESKTOP_STARTUP_ID
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
-if [ -f "$HOME/.config/sxhkd/scripts/speed_translate.py" ]; then
-    exec python3 "$HOME/.config/sxhkd/scripts/speed_translate.py" "$@"
+if [ "$#" -eq 0 ]; then
+    if [ -x "$HOME/.config/sxhkd/scripts/speed_translate_trigger" ]; then
+        exec "$HOME/.config/sxhkd/scripts/speed_translate_trigger"
+    else
+        exec "$SCRIPT_DIR/config/sxhkd/scripts/speed_translate_trigger"
+    fi
 else
-    exec python3 "$SCRIPT_DIR/config/sxhkd/scripts/speed_translate.py" "$@"
+    if [ -f "$HOME/.config/sxhkd/scripts/speed_translate.py" ]; then
+        exec python3 "$HOME/.config/sxhkd/scripts/speed_translate.py" "$@"
+    else
+        exec python3 "$SCRIPT_DIR/config/sxhkd/scripts/speed_translate.py" "$@"
+    fi
 fi

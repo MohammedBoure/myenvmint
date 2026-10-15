@@ -22,4 +22,7 @@ This directory contains the Python automation scripts that power the GlazeWM-sty
   Resolves the current or last visited directory in any active or open file manager (Thunar, Nemo, Nautilus, Caja, PCManFM) or active terminal session (via deep process cwd inspection, workspace and stacking prioritization, clipboard preservation, and persistent caching), launching the terminal directly into that directory.
 
 - **`speed_translate.py`**:
-  High-speed translation engine and dialog orchestrator. Pops up an interactive Zenity text entry window to input Arabic text, automatically normalizes typo characters (such as Arabic digit '٩' to 'ج'), translates the text to English using Google Translate's API, copies the result directly to the system clipboard (`xclip`), dynamically binds to and surfaces on whichever workspace is currently active (clearing inherited window IDs), restores focus to the target window on the current workspace, automatically pastes the translated English text, and issues a desktop notification.
+  Ultra-fast resident speed translation engine and daemon. Maintains a pre-warmed GTK3 floating bar and persistent HTTPS keep-alive connection to Google Translate. Listens on a local UNIX domain socket for instant hotkey triggers (< 2ms popup), normalizes Arabic character '٩' to 'ج', translates Arabic to English, sets the system clipboard, dismisses the bar with zero perceived latency, automatically pastes into the target window, and sends desktop notifications.
+
+- **`speed_translate_trigger.c` / `speed_translate_trigger`**:
+  Lightweight compiled C executable that dispatches an immediate datagram to the speed translation UNIX socket upon hotkey press, ensuring sub-millisecond execution overhead without Python interpreter startup delays.

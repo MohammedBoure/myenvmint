@@ -117,3 +117,9 @@ pkill -9 -f "autotile.py" 2>/dev/null || true
 rm -f /tmp/autotile.pid
 sleep 0.2
 python3 "$HOME/.config/sxhkd/scripts/autotile.py"
+
+# 8. Launch Ultra-Fast Speed Translation Daemon
+pkill -9 -f "[s]peed_translate.py daemon" 2>/dev/null || true
+rm -f /tmp/speed_translate.sock /tmp/speed_translate.pid
+sleep 0.1
+python3 "$HOME/.config/sxhkd/scripts/speed_translate.py" daemon

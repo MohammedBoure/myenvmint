@@ -20,5 +20,5 @@ This directory contains the core management, deployment, and orchestration shell
   Windows/macOS-style launcher utility for Linux. Opens directories, files, or URLs in the default desktop file manager (Nemo/Thunar) or application. Automatically defaults to the current working directory (`.`) if invoked without arguments in a fully detached background process.
 
 - **`speed-translate`**:
-  CLI and GUI launcher utility for high-speed Arabic-to-English translation. Can be invoked with arguments (`speed-translate "نص"`) to print and copy translations from the terminal, or invoked without arguments to trigger the Zenity entry dialog and automatic window paste workflow.
+  CLI and GUI launcher utility for high-speed Arabic-to-English translation. Can be invoked with arguments (`speed-translate "نص"`) to print and copy translations from the terminal, or invoked without arguments to trigger the ultra-fast resident GTK3 dialog and automatic window paste workflow.
 

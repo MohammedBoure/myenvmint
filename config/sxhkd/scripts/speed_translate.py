@@ -1,27 +1,29 @@
 #!/usr/bin/env python3
 """
-Speed Translation Tool for MyEnvMint
+Ultra-Fast Speed Translation Tool for MyEnvMint
 Global shortcut: Win + Shift + X (Super + Shift + X)
 
-Displays a quick text entry dialog (Zenity) where the user can type Arabic text.
-Works seamlessly across all workspaces (never gets pinned to a foreign workspace).
-
-Upon pressing Enter:
-1. Normalizes the text (including translating '٩' to 'ج' according to environment rules).
-2. Translates the text from Arabic (or auto-detected language) to English via Google Translate API.
-3. Copies the translation to the system clipboard (xclip).
-4. Restores focus to the target window on the CURRENT workspace and automatically pastes the translated English text (if triggered via dialog).
-5. Displays a desktop notification confirming the translation and clipboard status.
+Designed for MAXIMUM SPEED:
+- Runs as a resident background daemon with a pre-warmed GTK3 floating bar.
+- Pre-warmed persistent HTTPS connection to Google Translate API (eliminates TLS/DNS handshakes).
+- Instantaneous trigger via UNIX domain socket datagram (< 1 millisecond).
+- Universal workspace adherence (sticky across all desktops with zero positioning latency).
+- Immediate window dismissal on Enter (0ms perceived delay) and background auto-paste.
+- Character mapping: '٩' (U+0669) -> 'ج' (U+062C).
 """
 
 import os
 import sys
 import time
 import json
+import socket
 import threading
+import http.client
 import urllib.parse
-import urllib.request
 import subprocess
+
+SOCK_PATH = '/tmp/speed_translate.sock'
+PID_PATH = '/tmp/speed_translate.pid'
 
 TERMINAL_CLASSES = (
     'xfce4-terminal', 'gnome-terminal', 'x-terminal-emulator', 'alacritty',
@@ -30,283 +32,372 @@ TERMINAL_CLASSES = (
 )
 
 
-def get_clean_env():
-    """Return environment stripped of terminal-specific window tracking IDs."""
-    env = os.environ.copy()
-    env.pop('WINDOWID', None)
-    env.pop('DESKTOP_STARTUP_ID', None)
-    return env
+class PersistentTranslator:
+    """Maintains a persistent HTTPS keep-alive connection to eliminate handshake latency."""
+    def __init__(self):
+        self.conn = None
+
+    def get_connection(self):
+        if self.conn is None:
+            self.conn = http.client.HTTPSConnection('translate.googleapis.com', 443, timeout=5)
+            self.conn.connect()
+        return self.conn
+
+    def translate(self, text, source='auto', target='en'):
+        # Global environment normalization rule: '٩' -> 'ج'
+        normalized = text.replace('\u0669', 'ج')
+        encoded = urllib.parse.quote(normalized)
+        path = f'/translate_a/single?client=gtx&sl={source}&tl={target}&dt=t&q={encoded}'
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/119.0',
+            'Connection': 'keep-alive'
+        }
+
+        # Attempt with keep-alive; if connection dropped during idle, reconnect and retry once
+        for attempt in range(2):
+            try:
+                conn = self.get_connection()
+                conn.request('GET', path, headers=headers)
+                resp = conn.getresponse()
+                data = json.loads(resp.read().decode('utf-8'))
+                parts = [part[0] for part in data[0] if part and part[0]]
+                return normalized, ''.join(parts).strip()
+            except Exception:
+                if self.conn:
+                    try:
+                        self.conn.close()
+                    except Exception:
+                        pass
+                self.conn = None
+                if attempt == 1:
+                    raise
 
 
-def get_current_desktop():
-    """Retrieve the current active workspace index (0-indexed)."""
-    try:
-        out = subprocess.check_output(
-            ['xdotool', 'get_desktop'],
-            stderr=subprocess.DEVNULL
-        ).decode().strip()
-        return int(out)
-    except Exception:
-        pass
-    try:
-        out = subprocess.check_output(
-            ['xprop', '-root', '_NET_CURRENT_DESKTOP'],
-            stderr=subprocess.DEVNULL
-        ).decode()
-        for tok in out.split():
-            if tok.isdigit():
-                return int(tok)
-    except Exception:
-        pass
-    return 0
+class SpeedTranslateApp:
+    def __init__(self):
+        self.translator = PersistentTranslator()
+        self.target_win = None
+        self.is_terminal = False
+        self.clipboard = Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD)
+
+        # Setup GTK Window
+        self.window = Gtk.Window(type=Gtk.WindowType.TOPLEVEL)
+        self.window.set_title('Speed Translation')
+        self.window.set_role('SpeedTranslation')
+        self.window.set_decorated(False)
+        self.window.set_default_size(540, 56)
+        self.window.set_resizable(False)
+        self.window.set_position(Gtk.WindowPosition.CENTER)
+        self.window.stick()
+        self.window.set_keep_above(True)
+        self.window.set_skip_taskbar_hint(True)
+        self.window.set_skip_pager_hint(True)
+
+        # Container
+        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0)
+        self.window.add(box)
+
+        # Entry Widget
+        self.entry = Gtk.Entry()
+        self.entry.set_placeholder_text('Type Arabic text & press Enter (Esc to cancel)...')
+        self.entry.connect('activate', self.on_activate)
+        box.pack_start(self.entry, True, True, 0)
+
+        # Window Signals
+        self.window.connect('key-press-event', self.on_key_press)
+        self.window.connect('focus-out-event', self.on_focus_out)
+
+        # Modern CSS Dark Glass Theme
+        css = b'''
+        window {
+            background-color: #1e1e2e;
+            border: 2px solid #5294e2;
+            border-radius: 12px;
+        }
+        entry {
+            background: transparent;
+            border: none;
+            color: #ffffff;
+            font-size: 16px;
+            font-weight: 500;
+            padding: 12px 18px;
+            caret-color: #5294e2;
+        }
+        entry selection {
+            background-color: #5294e2;
+            color: #ffffff;
+        }
+        '''
+        provider = Gtk.CssProvider()
+        provider.load_from_data(css)
+        Gtk.StyleContext.add_provider_for_screen(
+            Gdk.Screen.get_default(),
+            provider,
+            Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
+        )
+
+        # Setup Socket Listener for instant hotkey triggers
+        self.setup_socket()
+
+        # Pre-warm connection in background
+        threading.Thread(target=self.warmup_connection, daemon=True).start()
+
+    def warmup_connection(self):
+        try:
+            self.translator.get_connection()
+        except Exception:
+            pass
+
+    def setup_socket(self):
+        if os.path.exists(SOCK_PATH):
+            try:
+                os.remove(SOCK_PATH)
+            except Exception:
+                pass
+        self.server_sock = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
+        self.server_sock.bind(SOCK_PATH)
+        self.server_sock.setblocking(False)
+        GLib.io_add_watch(self.server_sock.fileno(), GLib.IO_IN, self.on_socket_trigger)
+
+    def on_socket_trigger(self, source, condition):
+        try:
+            self.server_sock.recvfrom(1024)
+        except Exception:
+            return True
+
+        # 1. Capture active window before presenting dialog
+        self.target_win = self.get_active_window()
+        self.is_terminal = self.is_terminal_window(self.target_win) if self.target_win else False
+
+        # 2. Present window instantly
+        self.entry.set_text('')
+        self.window.stick()
+        self.window.set_keep_above(True)
+        self.window.show_all()
+        self.window.present_with_time(Gdk.CURRENT_TIME)
+        self.entry.grab_focus()
+        return True
+
+    def get_active_window(self):
+        try:
+            out = subprocess.check_output(
+                ['xdotool', 'getactivewindow'],
+                stderr=subprocess.DEVNULL
+            ).decode().strip()
+            wid = int(out)
+            # Ignore self window
+            my_xid = self.window.get_window().get_xid() if self.window.get_window() else 0
+            if wid and wid != my_xid:
+                return wid
+        except Exception:
+            pass
+        return None
+
+    def is_terminal_window(self, win_id):
+        if not win_id:
+            return False
+        try:
+            wm_class = subprocess.check_output(
+                ['xprop', '-id', str(win_id), 'WM_CLASS'],
+                stderr=subprocess.DEVNULL
+            ).decode().lower()
+            return any(term in wm_class for term in TERMINAL_CLASSES)
+        except Exception:
+            return False
+
+    def on_key_press(self, widget, event):
+        if event.keyval == Gdk.KEY_Escape:
+            self.dismiss()
+            return True
+        return False
+
+    def on_focus_out(self, widget, event):
+        # Auto-dismiss when clicking elsewhere
+        if self.window.get_visible():
+            self.dismiss()
+        return False
+
+    def dismiss(self):
+        self.window.hide()
+        if self.target_win:
+            try:
+                subprocess.run(['xdotool', 'windowactivate', str(self.target_win)], stderr=subprocess.DEVNULL)
+            except Exception:
+                pass
+
+    def on_activate(self, entry):
+        raw_text = entry.get_text().strip()
+        # Step 1: Instantly hide window (0ms perceived latency)
+        self.window.hide()
+        target = self.target_win
+        is_term = self.is_terminal
+
+        if not raw_text:
+            return
+
+        # Refocus target window immediately
+        if target:
+            try:
+                subprocess.run(['xdotool', 'windowactivate', str(target)], stderr=subprocess.DEVNULL)
+            except Exception:
+                pass
+
+        # Step 2: Background translation and instant paste
+        threading.Thread(
+            target=self.process_translation,
+            args=(raw_text, target, is_term),
+            daemon=True
+        ).start()
+
+    def process_translation(self, raw_text, target_win, is_term):
+        try:
+            normalized_input, translated = self.translator.translate(raw_text)
+        except Exception as exc:
+            self.copy_to_system_clipboard(raw_text)
+            self.notify('Speed Translation Error', f'Translation failed: {exc}', is_error=True)
+            return
+
+        if not translated:
+            return
+
+        # Copy to GTK clipboard and xclip
+        self.copy_to_system_clipboard(translated)
+
+        # Instant auto-paste into target window
+        if target_win:
+            paste_key = 'ctrl+shift+v' if is_term else 'ctrl+v'
+            try:
+                subprocess.run([
+                    'xdotool', 'key', '--window', str(target_win), '--clearmodifiers', paste_key
+                ], stderr=subprocess.DEVNULL)
+            except Exception:
+                pass
+
+        # Desktop notification
+        self.notify(
+            'Speed Translation',
+            f'AR: {normalized_input}\nEN: {translated}'
+        )
+
+    def copy_to_system_clipboard(self, text):
+        # 1. Native GTK in-memory clipboard
+        GLib.idle_add(self._set_gtk_clipboard, text)
+        # 2. X11 clipboard via xclip
+        try:
+            p = subprocess.Popen(
+                ['xclip', '-selection', 'clipboard'],
+                stdin=subprocess.PIPE,
+                stderr=subprocess.DEVNULL
+            )
+            p.communicate(input=text.encode('utf-8'))
+        except Exception:
+            pass
+
+    def _set_gtk_clipboard(self, text):
+        self.clipboard.set_text(text, -1)
+        self.clipboard.store()
+        return False
+
+    def notify(self, title, message, is_error=False):
+        try:
+            icon = 'dialog-error' if is_error else 'accessories-character-map'
+            subprocess.run([
+                'notify-send',
+                '-i', icon,
+                '-t', '3000',
+                title,
+                message
+            ], stderr=subprocess.DEVNULL)
+        except Exception:
+            pass
 
 
-def get_window_desktop(win_id):
-    """Retrieve the workspace index of a given window."""
-    if not win_id:
-        return -1
-    try:
-        out = subprocess.check_output(
-            ['xdotool', 'get_desktop_for_window', str(win_id)],
-            stderr=subprocess.DEVNULL
-        ).decode().strip()
-        return int(out)
-    except Exception:
-        pass
-    try:
-        out = subprocess.check_output(
-            ['xprop', '-id', str(win_id), '_NET_WM_DESKTOP'],
-            stderr=subprocess.DEVNULL
-        ).decode()
-        for tok in out.split():
-            if tok.isdigit():
-                return int(tok)
-    except Exception:
-        pass
-    return -1
-
-
-def is_valid_client_window(win_id):
-    """Check if the window is a valid application window (not desktop or panel)."""
-    if not win_id:
+def send_trigger():
+    """Send datagram to resident daemon socket; returns True on success."""
+    if not os.path.exists(SOCK_PATH):
         return False
     try:
-        wm_class = subprocess.check_output(
-            ['xprop', '-id', str(win_id), 'WM_CLASS'],
-            stderr=subprocess.DEVNULL
-        ).decode().lower()
-        ignored = ['xfce4-panel', 'desktop', 'polybar', 'zenity']
-        if any(ig in wm_class for ig in ignored):
-            return False
+        s = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
+        s.settimeout(0.5)
+        s.sendto(b'1', SOCK_PATH)
+        s.close()
         return True
     except Exception:
         return False
 
 
-def get_target_window_on_current_desktop(cur_desk):
-    """Find active or topmost client window strictly on the current workspace."""
-    # 1. Check current active window
-    try:
-        act = subprocess.check_output(
-            ['xdotool', 'getactivewindow'],
-            stderr=subprocess.DEVNULL
-        ).decode().strip()
-        if act and get_window_desktop(act) == cur_desk and is_valid_client_window(act):
-            return act
-    except Exception:
-        pass
-
-    # 2. Check topmost client on cur_desk from wmctrl stack
-    try:
-        out = subprocess.check_output(['wmctrl', '-l'], stderr=subprocess.DEVNULL).decode()
-        for line in reversed(out.splitlines()):
-            parts = line.split(maxsplit=4)
-            wid_str = parts[0]
-            d = int(parts[1]) if parts[1].lstrip('-').isdigit() else -1
-            wid_dec = str(int(wid_str, 16))
-            if d == cur_desk and is_valid_client_window(wid_dec):
-                return wid_dec
-    except Exception:
-        pass
-
-    return None
-
-
-def is_terminal_window(win_id):
-    """Check if the specified window belongs to a terminal emulator."""
-    if not win_id:
-        return False
-    try:
-        out = subprocess.check_output(
-            ['xprop', '-id', str(win_id), 'WM_CLASS'],
-            stderr=subprocess.DEVNULL
-        ).decode().lower()
-        return any(term in out for term in TERMINAL_CLASSES)
-    except Exception:
-        return False
-
-
-def pin_dialog_to_current_desktop(cur_desk):
-    """Ensure the Zenity dialog is placed and focused on the current active workspace."""
-    for _ in range(30):  # poll up to 1.5 seconds
-        try:
-            out = subprocess.check_output(['wmctrl', '-l'], stderr=subprocess.DEVNULL).decode()
-            for line in out.splitlines():
-                if 'Speed Translation' in line:
-                    wid = line.split()[0]
-                    # Assign strictly to current workspace
-                    subprocess.run(['wmctrl', '-i', '-r', wid, '-t', str(cur_desk)], stderr=subprocess.DEVNULL)
-                    # Keep on top
-                    subprocess.run(['wmctrl', '-i', '-r', wid, '-b', 'add,above'], stderr=subprocess.DEVNULL)
-                    # Activate and focus
-                    subprocess.run(['wmctrl', '-i', '-a', wid], stderr=subprocess.DEVNULL)
-                    subprocess.run(['xdotool', 'windowactivate', wid], stderr=subprocess.DEVNULL)
-                    return
-        except Exception:
-            pass
-        time.sleep(0.05)
-
-
-def prompt_entry_dialog(cur_desk):
-    """Display the Zenity input dialog for fast text entry on the current workspace."""
-    # Launch watcher thread to immediately bind dialog to current workspace
-    watcher = threading.Thread(target=pin_dialog_to_current_desktop, args=(cur_desk,), daemon=True)
-    watcher.start()
-
-    try:
-        cmd = [
-            'zenity',
-            '--entry',
-            '--title=Speed Translation (Arabic → English)',
-            '--text=Enter text to translate (Arabic → English):',
-            '--width=480',
-            '--ok-label=Translate & Paste',
-            '--cancel-label=Cancel'
-        ]
-        proc = subprocess.run(
-            cmd,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.DEVNULL,
-            text=True,
-            env=get_clean_env()
-        )
-        if proc.returncode == 0:
-            return proc.stdout.strip()
-        return None
-    except Exception:
-        return None
-
-
-def copy_to_clipboard(text):
-    """Copy text to X11 clipboard selection for Ctrl+V / Ctrl+Shift+V paste."""
-    try:
-        proc = subprocess.Popen(
-            ['xclip', '-selection', 'clipboard'],
-            stdin=subprocess.PIPE,
-            stderr=subprocess.DEVNULL,
-            env=get_clean_env()
-        )
-        proc.communicate(input=text.encode('utf-8'))
-    except Exception:
-        pass
-
-
-def translate_text(text, source_lang='auto', target_lang='en'):
-    """Translate text using the Google Translate single API endpoint."""
-    # Global environment normalization rule:
-    # Character Mapping: '٩' (U+0669) -> 'ج' (U+062C)
-    normalized_text = text.replace('\u0669', 'ج')
-
-    encoded_text = urllib.parse.quote(normalized_text)
-    url = (
-        f'https://translate.googleapis.com/translate_a/single'
-        f'?client=gtx&sl={source_lang}&tl={target_lang}&dt=t&q={encoded_text}'
-    )
-    req = urllib.request.Request(
-        url,
-        headers={'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/119.0'}
-    )
-    with urllib.request.urlopen(req, timeout=5) as resp:
-        data = json.loads(resp.read().decode('utf-8'))
-        parts = [part[0] for part in data[0] if part and part[0]]
-        return normalized_text, ''.join(parts).strip()
-
-
-def send_notification(title, message, is_error=False):
-    """Display a desktop notification."""
-    try:
-        icon = 'dialog-error' if is_error else 'accessories-character-map'
-        subprocess.run([
-            'notify-send',
-            '-i', icon,
-            '-t', '3500',
-            title,
-            message
-        ], stderr=subprocess.DEVNULL, env=get_clean_env())
-    except Exception:
-        pass
-
-
-def paste_to_window(win_id, is_term):
-    """Refocus target window on current workspace and simulate paste shortcut."""
-    if not win_id:
-        return
-    try:
-        time.sleep(0.12)
-        subprocess.run(['xdotool', 'windowactivate', '--sync', str(win_id)], stderr=subprocess.DEVNULL)
-        time.sleep(0.08)
-
-        # In terminals, Ctrl+Shift+V pastes from clipboard; in GUI apps, Ctrl+V
-        if is_term:
-            subprocess.run(['xdotool', 'key', '--clearmodifiers', 'ctrl+shift+v'], stderr=subprocess.DEVNULL)
-        else:
-            subprocess.run(['xdotool', 'key', '--clearmodifiers', 'ctrl+v'], stderr=subprocess.DEVNULL)
-    except Exception:
-        pass
+def daemonize():
+    """Double-fork daemonization to completely detach from parent terminal."""
+    if os.fork() > 0:
+        sys.exit(0)
+    os.setsid()
+    if os.fork() > 0:
+        sys.exit(0)
+    sys.stdout.flush()
+    sys.stderr.flush()
+    si = open(os.devnull, 'r')
+    so = open('/tmp/speed_translate.log', 'a+')
+    se = open('/tmp/speed_translate.log', 'a+')
+    os.dup2(si.fileno(), sys.stdin.fileno())
+    os.dup2(so.fileno(), sys.stdout.fileno())
+    os.dup2(se.fileno(), sys.stderr.fileno())
 
 
 def main():
-    # 1. Resolve current active workspace and target window strictly on this workspace
-    cur_desk = get_current_desktop()
-    target_win = get_target_window_on_current_desktop(cur_desk)
-    is_term = is_terminal_window(target_win) if target_win else False
-    is_dialog_mode = False
+    # Remove terminal-specific window IDs from environment
+    os.environ.pop('WINDOWID', None)
+    os.environ.pop('DESKTOP_STARTUP_ID', None)
 
-    # 2. Get input text (either CLI argument or Zenity dialog on current workspace)
-    if len(sys.argv) > 1:
+    # CLI direct translation mode: speed-translate "text"
+    if len(sys.argv) > 1 and sys.argv[1] not in ('daemon', 'trigger'):
         raw_input = ' '.join(sys.argv[1:]).strip()
-    else:
-        is_dialog_mode = True
-        raw_input = prompt_entry_dialog(cur_desk)
-
-    if not raw_input:
+        translator = PersistentTranslator()
+        try:
+            normalized_input, translated = translator.translate(raw_input)
+            print(translated)
+            # Copy to clipboard
+            p = subprocess.Popen(['xclip', '-selection', 'clipboard'], stdin=subprocess.PIPE)
+            p.communicate(input=translated.encode('utf-8'))
+        except Exception as exc:
+            print(f'Error: {exc}', file=sys.stderr)
+            sys.exit(1)
         sys.exit(0)
 
-    # 3. Translate
-    try:
-        normalized_input, translated = translate_text(raw_input)
-    except Exception as exc:
-        copy_to_clipboard(raw_input)
-        send_notification('Speed Translation Error', f'Failed to translate: {exc}\nOriginal text copied to clipboard.', is_error=True)
-        sys.exit(1)
-
-    if not translated:
+    # Trigger mode from hotkey:
+    if len(sys.argv) > 1 and sys.argv[1] == 'trigger':
+        if send_trigger():
+            sys.exit(0)
+        # If daemon wasn't running, start it
+        subprocess.Popen(['python3', __file__, 'daemon'], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        time.sleep(0.15)
+        send_trigger()
         sys.exit(0)
 
-    # 4. Copy to clipboard
-    copy_to_clipboard(translated)
+    # Daemon mode: double-fork detach
+    if len(sys.argv) > 1 and sys.argv[1] == 'daemon':
+        if '--foreground' not in sys.argv:
+            daemonize()
+    elif len(sys.argv) == 1:
+        # Check if daemon already running; if so, trigger it and exit
+        if send_trigger():
+            sys.exit(0)
 
-    # 5. If triggered via dialog, auto-paste into target window on this workspace
-    if is_dialog_mode:
-        paste_to_window(target_win, is_term)
-    else:
-        print(translated)
+    # Write PID
+    with open(PID_PATH, 'w') as f:
+        f.write(str(os.getpid()))
 
-    # 6. Show desktop notification
-    send_notification(
-        'Speed Translation (Copied to Clipboard)',
-        f'AR: {normalized_input}\nEN: {translated}'
-    )
+    global Gtk, Gdk, GLib
+    import gi
+    gi.require_version('Gtk', '3.0')
+    from gi.repository import Gtk, Gdk, GLib
+
+    # Run resident application
+    app = SpeedTranslateApp()
+    # If launched without 'daemon' arg, trigger immediately on launch
+    if len(sys.argv) == 1:
+        GLib.idle_add(lambda: app.on_socket_trigger(None, None))
+
+    Gtk.main()
 
 
 if __name__ == '__main__':

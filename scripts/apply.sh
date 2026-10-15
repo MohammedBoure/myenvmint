@@ -17,6 +17,10 @@ echo "==> Synchronizing configuration files from $SCRIPT_DIR..."
 # Copy Sxhkd
 cp -r "$SCRIPT_DIR/config/sxhkd/"* "$HOME/.config/sxhkd/"
 chmod +x "$HOME/.config/sxhkd/scripts/"*.py
+if [ -f "$HOME/.config/sxhkd/scripts/speed_translate_trigger.c" ]; then
+    gcc -O3 "$HOME/.config/sxhkd/scripts/speed_translate_trigger.c" -o "$HOME/.config/sxhkd/scripts/speed_translate_trigger" 2>/dev/null || true
+fi
+chmod +x "$HOME/.config/sxhkd/scripts/speed_translate_trigger" 2>/dev/null || true
 
 # Copy Polybar
 cp -r "$SCRIPT_DIR/config/polybar/"* "$HOME/.config/polybar/"
@@ -87,6 +91,7 @@ ln -sf "$HOME/.local/bin/start" "$HOME/.local/bin/explorer" 2>/dev/null || true
 ln -sf "$HOME/.local/bin/start" "$HOME/.local/bin/open" 2>/dev/null || true
 cp "$SCRIPT_DIR/scripts/speed-translate" "$HOME/.local/bin/speed-translate" 2>/dev/null || true
 chmod +x "$HOME/.local/bin/speed-translate" 2>/dev/null || true
+ln -sf "$HOME/.config/sxhkd/scripts/speed_translate_trigger" "$HOME/.local/bin/speed-translate-trigger" 2>/dev/null || true
 systemctl --user daemon-reload 2>/dev/null || true
 systemctl --user enable --now keepalive.service 2>/dev/null || true
 if [ -f "$HOME/.config/duckdns/duckdns.env" ] || [ -f "$SCRIPT_DIR/.env" ]; then

@@ -138,5 +138,5 @@ super + shift + {s,S,Arabic_seen,Arabic_kasratan}
 # ------------------------------------------------------------------------------
 # Interactive speed translation popup dialog (Win + Shift + X)
 super + shift + {x,X,Arabic_hamza,Arabic_sukun}
-    $HOME/.config/sxhkd/scripts/speed_translate.py
+    $HOME/.config/sxhkd/scripts/speed_translate_trigger
 
