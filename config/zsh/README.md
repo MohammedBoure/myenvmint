@@ -14,6 +14,7 @@ This directory houses the user shell configuration for Zsh.
   - Arrow keys (`Up` / `Down`) prefix substring history search (`up-line-or-beginning-search`).
   - Integration with `zsh-autosuggestions` and `zsh-syntax-highlighting`.
   - Integration with `fzf` for fuzzy popup command history (`Ctrl+R`) and directory navigation (`Alt+C`).
+  - Desktop opener aliases: `start`, `open`, and `explorer` to instantly open the current terminal path in the GUI file manager (Nemo/Thunar).
   - Starship prompt initialization hook (`eval "$(starship init zsh)"`).
 - **`zshenv`**:
   Pre-initialization environment setting `skip_global_compinit=1` to prevent Ubuntu global shell profiles from conflicting with modern completion frameworks.

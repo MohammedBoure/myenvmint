@@ -128,6 +128,9 @@ alias fgrep='fgrep --color=auto'
 alias egrep='egrep --color=auto'
 alias df='df -h'
 alias free='free -m'
+alias start='start'
+alias open='start'
+alias explorer='start'
 
 # ------------------------------------------------------------------------------
 # 9. Starship Prompt Initialization

@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+# ==============================================================================
+# start - Windows/macOS-style open command for Linux
+# Opens files, folders, or URLs in the default desktop application / file manager.
+# If invoked without arguments, it opens the current working directory (.) in the
+# GUI file manager (Nemo / Thunar / default file manager) in detached mode.
+# ==============================================================================
+
+# If no target specified, default to current working directory
+if [ $# -eq 0 ]; then
+    set -- "."
+fi
+
+for target in "$@"; do
+    if command -v xdg-open >/dev/null 2>&1; then
+        setsid xdg-open "$target" >/dev/null 2>&1 &
+    elif command -v nemo >/dev/null 2>&1; then
+        setsid nemo "$target" >/dev/null 2>&1 &
+    elif command -v thunar >/dev/null 2>&1; then
+        setsid thunar "$target" >/dev/null 2>&1 &
+    else
+        echo "[start] Error: No suitable file manager or xdg-open found." >&2
+        exit 1
+    fi
+done

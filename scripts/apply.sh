@@ -79,6 +79,10 @@ mkdir -p "$HOME/.config/systemd/user" "$HOME/.config/myenvmint/scripts"
 cp "$SCRIPT_DIR/config/systemd/user/"* "$HOME/.config/systemd/user/" 2>/dev/null || true
 cp "$SCRIPT_DIR/scripts/duckdns-update.sh" "$HOME/.config/myenvmint/scripts/duckdns-update.sh" 2>/dev/null || true
 chmod +x "$HOME/.config/myenvmint/scripts/duckdns-update.sh" 2>/dev/null || true
+cp "$SCRIPT_DIR/scripts/start" "$HOME/.local/bin/start" 2>/dev/null || true
+chmod +x "$HOME/.local/bin/start" 2>/dev/null || true
+ln -sf "$HOME/.local/bin/start" "$HOME/.local/bin/explorer" 2>/dev/null || true
+ln -sf "$HOME/.local/bin/start" "$HOME/.local/bin/open" 2>/dev/null || true
 systemctl --user daemon-reload 2>/dev/null || true
 systemctl --user enable --now keepalive.service 2>/dev/null || true
 if [ -f "$HOME/.config/duckdns/duckdns.env" ] || [ -f "$SCRIPT_DIR/.env" ]; then

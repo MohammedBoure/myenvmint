@@ -13,3 +13,11 @@ if (Get-Module -ListAvailable -Name PSReadLine) {
     Set-PSReadLineKeyHandler -Key UpArrow -Function PreviousHistory
     Set-PSReadLineKeyHandler -Key DownArrow -Function NextHistory
 }
+
+function Invoke-Explorer {
+    param([string]$Path = ".")
+    Start-Process -FilePath "start" -ArgumentList $Path
+}
+Set-Alias -Name explorer -Value Invoke-Explorer -Option AllScope -ErrorAction SilentlyContinue
+Set-Alias -Name open -Value Invoke-Explorer -Option AllScope -ErrorAction SilentlyContinue
+

@@ -15,3 +15,7 @@ This directory contains the core management, deployment, and orchestration shell
 
 - **`duckdns-update.sh`**:
   Queries the current public IP address and securely sends an update request to DuckDNS for the configured domain using credentials isolated in environment variables.
+
+- **`start`**:
+  Windows/macOS-style launcher utility for Linux. Opens directories, files, or URLs in the default desktop file manager (Nemo/Thunar) or application. Automatically defaults to the current working directory (`.`) if invoked without arguments in a fully detached background process.
+
