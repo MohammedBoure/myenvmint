@@ -1,8 +1,23 @@
 ! Arabic corrections for Barrier KVM and AZERTY keyboards
 ! Map keycode 18 to Arabic_jeem in Arabic mode (fixes ٩ -> ج across Barrier KVM and physical layout)
-keycode 18 = ccedilla 9 Arabic_jeem parenright asciicircum NoSymbol Arabic_jeem U062C
+keycode 18 = ccedilla 9 Arabic_jeem Arabic_9 asciicircum NoSymbol Arabic_jeem U062C
 ! Map keycode 51 to Arabic_thal in Arabic mode (fixes \ -> ذ across Barrier KVM and physical layout)
 keycode 51 = asterisk mu Arabic_thal bar
+! Clean 1-to-1 keycode mapping for keycodes 16 and 19 to avoid grab collisions across layouts
+keycode 16 = egrave 7 7 Arabic_7 grave NoSymbol Arabic_7
+keycode 19 = agrave 0 0 Arabic_0 at NoSymbol Arabic_0
+! Ensure numpad keys are consistently mapped as KP numbers across all levels
+keycode 87 = KP_1 KP_1 KP_1 KP_1
+keycode 88 = KP_2 KP_2 KP_2 KP_2
+keycode 89 = KP_3 KP_3 KP_3 KP_3
+keycode 83 = KP_4 KP_4 KP_4 KP_4
+keycode 84 = KP_5 KP_5 KP_5 KP_5
+keycode 85 = KP_6 KP_6 KP_6 KP_6
+keycode 79 = KP_7 KP_7 KP_7 KP_7
+keycode 80 = KP_8 KP_8 KP_8 KP_8
+keycode 81 = KP_9 KP_9 KP_9 KP_9
+keycode 90 = KP_0 KP_0 KP_0 KP_0
 ! Map dedicated keycodes 197 and 202 as fallback for direct keysym injection
 keycode 197 = Arabic_jeem Arabic_jeem Arabic_jeem Arabic_jeem
 keycode 202 = Arabic_thal Arabic_thal Arabic_thal Arabic_thal
+

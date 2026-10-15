@@ -59,20 +59,12 @@ alt + shift + space
 # 4. Workspace Management (Workspaces 1 to 10)
 # ------------------------------------------------------------------------------
 # Switch to workspace index 0 to 9 using Alt:
-# AZERTY unshifted top-row keys:
+# AZERTY unshifted top-row keys (keycodes 10..19):
 alt + {ampersand,eacute,quotedbl,apostrophe,parenleft,minus,egrave,underscore,ccedilla,agrave}
     $HOME/.config/sxhkd/scripts/window_manage.py switch {0,1,2,3,4,5,6,7,8,9}
 
-# Standard / Arabic numbers:
-alt + {1,2,3,4,5,6,7,8,9,0}
-    $HOME/.config/sxhkd/scripts/window_manage.py switch {0,1,2,3,4,5,6,7,8,9}
-
-# Numpad keys (NumLock ON):
+# Numpad keys (keycodes 87, 88, 89, 83, 84, 85, 79, 80, 81, 90):
 alt + {KP_1,KP_2,KP_3,KP_4,KP_5,KP_6,KP_7,KP_8,KP_9,KP_0}
-    $HOME/.config/sxhkd/scripts/window_manage.py switch {0,1,2,3,4,5,6,7,8,9}
-
-# Numpad keys (NumLock OFF):
-alt + {KP_End,KP_Down,KP_Next,KP_Left,KP_Begin,KP_Right,KP_Home,KP_Up,KP_Prior,KP_Insert}
     $HOME/.config/sxhkd/scripts/window_manage.py switch {0,1,2,3,4,5,6,7,8,9}
 
 # Switch to workspace index 0 to 9 using Super:
@@ -80,16 +72,8 @@ alt + {KP_End,KP_Down,KP_Next,KP_Left,KP_Begin,KP_Right,KP_Home,KP_Up,KP_Prior,K
 super + {ampersand,eacute,quotedbl,apostrophe,parenleft,minus,egrave,underscore,ccedilla,agrave}
     $HOME/.config/sxhkd/scripts/window_manage.py switch {0,1,2,3,4,5,6,7,8,9}
 
-# Standard / Arabic numbers:
-super + {1,2,3,4,5,6,7,8,9,0}
-    $HOME/.config/sxhkd/scripts/window_manage.py switch {0,1,2,3,4,5,6,7,8,9}
-
-# Numpad keys (NumLock ON):
+# Numpad keys:
 super + {KP_1,KP_2,KP_3,KP_4,KP_5,KP_6,KP_7,KP_8,KP_9,KP_0}
-    $HOME/.config/sxhkd/scripts/window_manage.py switch {0,1,2,3,4,5,6,7,8,9}
-
-# Numpad keys (NumLock OFF):
-super + {KP_End,KP_Down,KP_Next,KP_Left,KP_Begin,KP_Right,KP_Home,KP_Up,KP_Prior,KP_Insert}
     $HOME/.config/sxhkd/scripts/window_manage.py switch {0,1,2,3,4,5,6,7,8,9}
 
 # Move active window to workspace index 0 to 9 using Ctrl + Alt:
@@ -97,74 +81,35 @@ super + {KP_End,KP_Down,KP_Next,KP_Left,KP_Begin,KP_Right,KP_Home,KP_Up,KP_Prior
 ctrl + alt + {ampersand,eacute,quotedbl,apostrophe,parenleft,minus,egrave,underscore,ccedilla,agrave}
     $HOME/.config/sxhkd/scripts/window_manage.py move {0,1,2,3,4,5,6,7,8,9}
 
-# Standard / Arabic numbers:
-ctrl + alt + {1,2,3,4,5,6,7,8,9,0}
-    $HOME/.config/sxhkd/scripts/window_manage.py move {0,1,2,3,4,5,6,7,8,9}
-
-# AZERTY numbers with Shift (Ctrl + Alt + Shift + 1..0):
-ctrl + alt + shift + {1,2,3,4,5,6,7,8,9,0}
-    $HOME/.config/sxhkd/scripts/window_manage.py move {0,1,2,3,4,5,6,7,8,9}
-
-# Arabic layout shifted keys (Ctrl + Alt + Shift):
-ctrl + alt + shift + {exclam,at,numbersign,dollar,percent,asciicircum,ampersand,asterisk,parenright,parenleft}
-    $HOME/.config/sxhkd/scripts/window_manage.py move {0,1,2,3,4,5,6,7,8,9}
-
-# Numpad keys (NumLock ON):
+# Numpad keys:
 ctrl + alt + {KP_1,KP_2,KP_3,KP_4,KP_5,KP_6,KP_7,KP_8,KP_9,KP_0}
     $HOME/.config/sxhkd/scripts/window_manage.py move {0,1,2,3,4,5,6,7,8,9}
 
-# Numpad keys (NumLock OFF):
-ctrl + alt + {KP_End,KP_Down,KP_Next,KP_Left,KP_Begin,KP_Right,KP_Home,KP_Up,KP_Prior,KP_Insert}
+# Move active window to workspace index 0 to 9 using Ctrl + Alt + Shift:
+ctrl + alt + shift + {1,2,3,4,5,6,7,8,9,0}
     $HOME/.config/sxhkd/scripts/window_manage.py move {0,1,2,3,4,5,6,7,8,9}
 
-# Numpad keys with Shift:
 ctrl + alt + shift + {KP_1,KP_2,KP_3,KP_4,KP_5,KP_6,KP_7,KP_8,KP_9,KP_0}
     $HOME/.config/sxhkd/scripts/window_manage.py move {0,1,2,3,4,5,6,7,8,9}
 
-ctrl + alt + shift + {KP_End,KP_Down,KP_Next,KP_Left,KP_Begin,KP_Right,KP_Home,KP_Up,KP_Prior,KP_Insert}
-    $HOME/.config/sxhkd/scripts/window_manage.py move {0,1,2,3,4,5,6,7,8,9}
-
-# Move active window to workspace index 0 to 9 using Alt + Shift:
-# AZERTY top-row keys:
-alt + shift + {ampersand,eacute,quotedbl,apostrophe,parenleft,minus,egrave,underscore,ccedilla,agrave}
-    $HOME/.config/sxhkd/scripts/window_manage.py move {0,1,2,3,4,5,6,7,8,9}
-
-# Standard / Arabic numbers:
+# Move active window to workspace index 0 to 9 using Alt + Shift (or Shift + Alt):
+# Top-row numbers (keycodes 10..19 when holding Shift):
 alt + shift + {1,2,3,4,5,6,7,8,9,0}
     $HOME/.config/sxhkd/scripts/window_manage.py move {0,1,2,3,4,5,6,7,8,9}
 
-# Arabic layout shifted keys for moving active window:
-alt + shift + {exclam,at,numbersign,dollar,percent,asciicircum,ampersand,asterisk,parenright,parenleft}
-    $HOME/.config/sxhkd/scripts/window_manage.py move {0,1,2,3,4,5,6,7,8,9}
-
-# Numpad keys (NumLock ON):
+# Numpad keys:
 alt + shift + {KP_1,KP_2,KP_3,KP_4,KP_5,KP_6,KP_7,KP_8,KP_9,KP_0}
     $HOME/.config/sxhkd/scripts/window_manage.py move {0,1,2,3,4,5,6,7,8,9}
 
-# Numpad keys (NumLock OFF):
-alt + shift + {KP_End,KP_Down,KP_Next,KP_Left,KP_Begin,KP_Right,KP_Home,KP_Up,KP_Prior,KP_Insert}
-    $HOME/.config/sxhkd/scripts/window_manage.py move {0,1,2,3,4,5,6,7,8,9}
-
-# Move active window to workspace index 0 to 9 using Super + Shift:
-# AZERTY top-row keys:
-super + shift + {ampersand,eacute,quotedbl,apostrophe,parenleft,minus,egrave,underscore,ccedilla,agrave}
-    $HOME/.config/sxhkd/scripts/window_manage.py move {0,1,2,3,4,5,6,7,8,9}
-
-# Standard / Arabic numbers:
+# Move active window to workspace index 0 to 9 using Super + Shift (or Shift + Super):
+# Top-row numbers (keycodes 10..19 when holding Shift):
 super + shift + {1,2,3,4,5,6,7,8,9,0}
     $HOME/.config/sxhkd/scripts/window_manage.py move {0,1,2,3,4,5,6,7,8,9}
 
-# Arabic layout shifted keys for moving active window:
-super + shift + {exclam,at,numbersign,dollar,percent,asciicircum,ampersand,asterisk,parenright,parenleft}
-    $HOME/.config/sxhkd/scripts/window_manage.py move {0,1,2,3,4,5,6,7,8,9}
-
-# Numpad keys (NumLock ON):
+# Numpad keys:
 super + shift + {KP_1,KP_2,KP_3,KP_4,KP_5,KP_6,KP_7,KP_8,KP_9,KP_0}
     $HOME/.config/sxhkd/scripts/window_manage.py move {0,1,2,3,4,5,6,7,8,9}
 
-# Numpad keys (NumLock OFF):
-super + shift + {KP_End,KP_Down,KP_Next,KP_Left,KP_Begin,KP_Right,KP_Home,KP_Up,KP_Prior,KP_Insert}
-    $HOME/.config/sxhkd/scripts/window_manage.py move {0,1,2,3,4,5,6,7,8,9}
 
 
 # ------------------------------------------------------------------------------

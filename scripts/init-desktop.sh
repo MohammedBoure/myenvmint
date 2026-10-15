@@ -28,12 +28,22 @@ wmctrl -n 10 2>/dev/null || true
 # 2. Configure System Keyboard Layout (FR AZERTY + Arabic, Win+Space toggle)
 setxkbmap -option "" -layout "fr,ara" -variant "azerty," -option "grp:win_space_toggle,terminate:ctrl_alt_bksp" 2>/dev/null || true
 
-# 2b. Apply Arabic Keycode Corrections for Barrier & AZERTY (Jeem and Thal)
-xmodmap -e "keycode 18 = ccedilla 9 Arabic_jeem parenright asciicircum NoSymbol Arabic_jeem U062C" 2>/dev/null || true
-xmodmap -e "keycode 51 = asterisk mu Arabic_thal bar" 2>/dev/null || true
-xmodmap -e "keycode 197 = Arabic_jeem Arabic_jeem Arabic_jeem Arabic_jeem" 2>/dev/null || true
-xmodmap -e "keycode 202 = Arabic_thal Arabic_thal Arabic_thal Arabic_thal" 2>/dev/null || true
+# 2b. Apply Arabic & Numpad Keycode Corrections for Barrier, AZERTY, and Sxhkd Grabs
+if [ -f "$HOME/.Xmodmap" ]; then
+    xmodmap "$HOME/.Xmodmap" 2>/dev/null || true
+else
+    xmodmap -e "keycode 18 = ccedilla 9 Arabic_jeem Arabic_9 asciicircum NoSymbol Arabic_jeem U062C" 2>/dev/null || true
+    xmodmap -e "keycode 51 = asterisk mu Arabic_thal bar" 2>/dev/null || true
+    xmodmap -e "keycode 16 = egrave 7 7 Arabic_7 grave NoSymbol Arabic_7" 2>/dev/null || true
+    xmodmap -e "keycode 19 = agrave 0 0 Arabic_0 at NoSymbol Arabic_0" 2>/dev/null || true
+    for _k in 87:1 88:2 89:3 83:4 84:5 85:6 79:7 80:8 81:9 90:0; do
+        xmodmap -e "keycode ${_k%%:*} = KP_${_k##*:} KP_${_k##*:} KP_${_k##*:} KP_${_k##*:}" 2>/dev/null || true
+    done
+    xmodmap -e "keycode 197 = Arabic_jeem Arabic_jeem Arabic_jeem Arabic_jeem" 2>/dev/null || true
+    xmodmap -e "keycode 202 = Arabic_thal Arabic_thal Arabic_thal Arabic_thal" 2>/dev/null || true
+fi
 systemctl --user restart barrier-client.service 2>/dev/null || true
+
 
 # 3. Configure Whisker Menu / Cinnamon Menu shortcuts
 if command -v xfconf-query >/dev/null 2>&1; then
