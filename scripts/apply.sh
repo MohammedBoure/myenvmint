@@ -54,6 +54,11 @@ cp -r "$SCRIPT_DIR/config/lazygit/"* "$HOME/.config/lazygit/" 2>/dev/null || tru
 cp -r "$SCRIPT_DIR/config/ranger/"* "$HOME/.config/ranger/" 2>/dev/null || true
 cp -r "$SCRIPT_DIR/config/xed/"* "$HOME/.config/xed/" 2>/dev/null || true
 
+# Copy Custom Desktop Themes & GTK3 CSS (High-Contrast Window Borders)
+mkdir -p "$HOME/.themes" "$HOME/.config/gtk-3.0"
+cp -r "$SCRIPT_DIR/config/themes/"* "$HOME/.themes/" 2>/dev/null || true
+cp "$SCRIPT_DIR/config/gtk-3.0/gtk.css" "$HOME/.config/gtk-3.0/gtk.css" 2>/dev/null || true
+
 # Copy XFCE & Cinnamon Configs
 mkdir -p "$HOME/.config/xfce4/xfconf/xfce-perchannel-xml" "$HOME/.config/xfce4/panel" "$HOME/.config/cinnamon/spices"
 cp -r "$SCRIPT_DIR/config/xfce4/xfconf/xfce-perchannel-xml/"* "$HOME/.config/xfce4/xfconf/xfce-perchannel-xml/" 2>/dev/null || true
@@ -123,6 +128,7 @@ if command -v xfconf-query >/dev/null 2>&1; then
     xfconf-query -c xfce4-panel -p /panels/panel-1/position-locked -n -t bool -s true 2>/dev/null || true
     xfconf-query -c xfce4-panel -p /panels/panel-1/length -n -t uint -s 100 2>/dev/null || true
     xfconf-query -c xfce4-panel -p /plugins/plugin-1 -n -t string -s "whiskermenu" 2>/dev/null || true
+    xfconf-query -c xfwm4 -p /general/theme -s "MyEnvMint-Dark" 2>/dev/null || true
     DISPLAY=:0 xfce4-panel -r 2>/dev/null || true
 fi
 if command -v dconf >/dev/null 2>&1; then

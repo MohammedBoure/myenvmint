@@ -39,6 +39,8 @@ A comprehensive, fully tracked desktop configuration environment that implements
 │   ├── xed/                      # Xed text editor shortcuts
 │   ├── xfce4/                    # XFCE terminal, multi-monitor, and panel configurations
 │   │   └── xfconf/xfce-perchannel-xml/xfce4-panel.xml # Autohiding bottom panel & Whisker Menu
+│   ├── gtk-3.0/                  # Global GTK3 window decoration stylesheet (crisp window borders)
+│   ├── themes/                   # Custom window manager themes (MyEnvMint-Dark with high-contrast borders)
 │   ├── cinnamon/                 # Cinnamon desktop and applet settings (spices)
 │   ├── antigravity/              # Antigravity CLI and global AI agent rules
 │   ├── xmodmap/                  # Custom keymap corrections for Barrier KVM & AZERTY/Arabic

@@ -218,20 +218,20 @@ def update_borders(current_order):
     if not disp:
         return
     active_wid = get_active_window()
-    white = 0xffffff
-    gray = 0x3a3f4b
+    active_color = 0x5294e2
+    inactive_color = 0x5a6577
     root_id = disp.screen().root.id
 
     for wid in current_order:
         is_active = (wid == active_wid)
-        color = white if is_active else gray
+        color = active_color if is_active else inactive_color
         try:
             win = disp.create_resource_object('window', wid)
-            win.configure(border_width=1)
+            win.configure(border_width=2)
             win.change_attributes(border_pixel=color)
             parent = win.query_tree().parent
             if parent and parent.id != root_id:
-                parent.configure(border_width=1)
+                parent.configure(border_width=2)
                 parent.change_attributes(border_pixel=color)
         except Exception:
             pass

@@ -51,6 +51,7 @@ if command -v xfconf-query >/dev/null 2>&1; then
     xfconf-query -c xfce4-panel -p /panels/panel-1/position-locked -n -t bool -s true 2>/dev/null || true
     xfconf-query -c xfce4-panel -p /panels/panel-1/length -n -t uint -s 100 2>/dev/null || true
     xfconf-query -c xfce4-panel -p /plugins/plugin-1 -n -t string -s "whiskermenu" 2>/dev/null || true
+    xfconf-query -c xfwm4 -p /general/theme -s "MyEnvMint-Dark" 2>/dev/null || true
 fi
 if command -v dconf >/dev/null 2>&1; then
     dconf write /org/cinnamon/menu-key-binding "'<Super>F1'" 2>/dev/null || true

@@ -6,7 +6,9 @@ This directory houses all user configuration bundles and dotfiles that define th
 
 - **`sxhkd/`**: X11 shortcut daemon configuration (`sxhkdrc`) and Python window management scripts.
 - **`polybar/`**: Top bar configuration (`config.ini`), launch script, and live telemetry scripts.
-- **`picom/`**: Compositor configuration (`picom.conf`) providing 2px active window white borders and subtle background dimming.
+- **`picom/`**: Compositor configuration (`picom.conf`) providing 3px uniform window outline borders and subtle background dimming.
+- **`gtk-3.0/`**: Global GTK3 stylesheet (`gtk.css`) enforcing high-contrast window boundaries across client-side decorated applications.
+- **`themes/`**: Custom desktop and window manager themes (`MyEnvMint-Dark/xfwm4`) with dedicated high-contrast active and inactive window frames.
 - **`starship/`**: Starship prompt preset (`starship.toml`).
 - **`zsh/`**: Zsh shell configuration (`zshrc`).
 - **`micro/`**: Micro editor configurations (`bindings.json`, `settings.json`, and productivity plugins including `filemanager`, `fzf`, `editorconfig`, `bookmark`, `snippets`).

@@ -123,6 +123,11 @@ cp -r "$SCRIPT_DIR/config/lazygit/"* "$HOME/.config/lazygit/" 2>/dev/null || tru
 cp -r "$SCRIPT_DIR/config/ranger/"* "$HOME/.config/ranger/" 2>/dev/null || true
 cp -r "$SCRIPT_DIR/config/xed/"* "$HOME/.config/xed/" 2>/dev/null || true
 
+# Copy Custom Desktop Themes & GTK3 CSS (High-Contrast Window Borders)
+mkdir -p "$HOME/.themes" "$HOME/.config/gtk-3.0"
+cp -r "$SCRIPT_DIR/config/themes/"* "$HOME/.themes/" 2>/dev/null || true
+cp "$SCRIPT_DIR/config/gtk-3.0/gtk.css" "$HOME/.config/gtk-3.0/gtk.css" 2>/dev/null || true
+
 # XFCE & Cinnamon Configs
 cp -r "$SCRIPT_DIR/config/xfce4/xfconf/xfce-perchannel-xml/"* "$HOME/.config/xfce4/xfconf/xfce-perchannel-xml/" 2>/dev/null || true
 cp -r "$SCRIPT_DIR/config/xfce4/panel/"* "$HOME/.config/xfce4/panel/" 2>/dev/null || true
@@ -187,6 +192,7 @@ if command -v xfconf-query >/dev/null 2>&1; then
         xfconf-query -c xfce4-keyboard-shortcuts -p "/xfwm4/custom/<Alt><Control>$k" -n -t string -s "" 2>/dev/null || true
         xfconf-query -c xfce4-keyboard-shortcuts -p "/xfwm4/custom/<Primary><Alt>$k" -n -t string -s "" 2>/dev/null || true
     done
+    xfconf-query -c xfwm4 -p /general/theme -s "MyEnvMint-Dark" 2>/dev/null || true
 fi
 
 # Apply Cinnamon dconf settings

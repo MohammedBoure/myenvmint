@@ -1,0 +1,33 @@
+/* ==============================================================================
+ * MyEnvMint Custom Window Borders (GTK3)
+ * Enforces crisp, high-contrast borders around all client-side decorated windows
+ * ============================================================================== */
+
+/* Active window border outline */
+window.csd decoration {
+    border: 2px solid #5294E2;
+    box-shadow: 0 0 0 1px #5294E2;
+}
+
+/* Inactive window border outline */
+window.csd:backdrop decoration {
+    border: 2px solid #5A6577;
+    box-shadow: 0 0 0 1px #5A6577;
+}
+
+/* Tiled and dialog window borders */
+window.tiled,
+window.tiled-top,
+window.tiled-bottom,
+window.tiled-left,
+window.tiled-right {
+    border: 2px solid #5294E2;
+}
+
+window.tiled:backdrop,
+window.tiled-top:backdrop,
+window.tiled-bottom:backdrop,
+window.tiled-left:backdrop,
+window.tiled-right:backdrop {
+    border: 2px solid #5A6577;
+}
