@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+# ==============================================================================
+# MyEnvMint - Speed Translation Tool
+# Translates Arabic (or any detected text) to English.
+# If invoked without arguments, opens a quick GUI entry dialog (Zenity) and
+# automatically pastes into the active window upon pressing Enter.
+# If invoked with arguments, translates directly, prints to stdout, and copies
+# to the system clipboard.
+# ==============================================================================
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
+if [ -f "$HOME/.config/sxhkd/scripts/speed_translate.py" ]; then
+    exec python3 "$HOME/.config/sxhkd/scripts/speed_translate.py" "$@"
+else
+    exec python3 "$SCRIPT_DIR/config/sxhkd/scripts/speed_translate.py" "$@"
+fi

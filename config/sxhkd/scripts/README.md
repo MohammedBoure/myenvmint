@@ -20,3 +20,6 @@ This directory contains the Python automation scripts that power the GlazeWM-sty
 
 - **`open_terminal.py`**:
   Resolves the current or last visited directory in any active or open file manager (Thunar, Nemo, Nautilus, Caja, PCManFM) or active terminal session (via deep process cwd inspection, workspace and stacking prioritization, clipboard preservation, and persistent caching), launching the terminal directly into that directory.
+
+- **`speed_translate.py`**:
+  High-speed translation engine and dialog orchestrator. Pops up an interactive Zenity text entry window to input Arabic text, automatically normalizes typo characters (such as Arabic digit '٩' to 'ج'), translates the text to English using Google Translate's API, copies the result directly to the system clipboard (`xclip`), restores focus to the previously active window, automatically pastes the translated English text, and issues a desktop notification.

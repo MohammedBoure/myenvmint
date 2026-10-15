@@ -130,6 +130,13 @@ alt + control + t
 # 6. Screenshot (Snipping Tool region to clipboard)
 # ------------------------------------------------------------------------------
 # Interactive region screenshot to clipboard (Win + Shift + S)
-super + shift + s
+super + shift + {s,S,Arabic_seen,Arabic_kasratan}
     xfce4-screenshooter -r -c && notify-send -i accessories-screenshot "Screenshot" "Selection copied to clipboard"
+
+# ------------------------------------------------------------------------------
+# 7. Speed Translation (Arabic -> English Dialog)
+# ------------------------------------------------------------------------------
+# Interactive speed translation popup dialog (Win + Shift + X)
+super + shift + {x,X,Arabic_hamza,Arabic_sukun}
+    $HOME/.config/sxhkd/scripts/speed_translate.py
 

@@ -83,6 +83,8 @@ cp "$SCRIPT_DIR/scripts/start" "$HOME/.local/bin/start" 2>/dev/null || true
 chmod +x "$HOME/.local/bin/start" 2>/dev/null || true
 ln -sf "$HOME/.local/bin/start" "$HOME/.local/bin/explorer" 2>/dev/null || true
 ln -sf "$HOME/.local/bin/start" "$HOME/.local/bin/open" 2>/dev/null || true
+cp "$SCRIPT_DIR/scripts/speed-translate" "$HOME/.local/bin/speed-translate" 2>/dev/null || true
+chmod +x "$HOME/.local/bin/speed-translate" 2>/dev/null || true
 systemctl --user daemon-reload 2>/dev/null || true
 systemctl --user enable --now keepalive.service 2>/dev/null || true
 if [ -f "$HOME/.config/duckdns/duckdns.env" ] || [ -f "$SCRIPT_DIR/.env" ]; then
@@ -105,6 +107,8 @@ if command -v xfconf-query >/dev/null 2>&1; then
     done
     xfconf-query -c xfce4-keyboard-shortcuts -p "/commands/custom/<Super><Shift>s" -r 2>/dev/null || true
     xfconf-query -c xfce4-keyboard-shortcuts -p "/commands/custom/<Super><Shift>S" -r 2>/dev/null || true
+    xfconf-query -c xfce4-keyboard-shortcuts -p "/commands/custom/<Super><Shift>x" -r 2>/dev/null || true
+    xfconf-query -c xfce4-keyboard-shortcuts -p "/commands/custom/<Super><Shift>X" -r 2>/dev/null || true
     xfconf-query -c xfce4-panel -p /panels/panel-1/position -n -t string -s "p=10;x=0;y=0" 2>/dev/null || true
     xfconf-query -c xfce4-panel -p /panels/panel-1/autohide-behavior -n -t uint -s 2 2>/dev/null || true
     xfconf-query -c xfce4-panel -p /panels/panel-1/position-locked -n -t bool -s true 2>/dev/null || true
