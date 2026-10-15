@@ -63,6 +63,10 @@ alt + shift + space
 alt + {ampersand,eacute,quotedbl,apostrophe,parenleft,minus,egrave,underscore,ccedilla,agrave}
     $HOME/.config/sxhkd/scripts/window_manage.py switch {0,1,2,3,4,5,6,7,8,9}
 
+# Standard / Arabic numbers:
+alt + {1,2,3,4,5,6,7,8,9,0}
+    $HOME/.config/sxhkd/scripts/window_manage.py switch {0,1,2,3,4,5,6,7,8,9}
+
 # Numpad keys:
 alt + {KP_End,KP_Down,KP_Next,KP_Left,KP_Begin,KP_Right,KP_Home,KP_Up,KP_Prior,KP_Insert}
     $HOME/.config/sxhkd/scripts/window_manage.py switch {0,1,2,3,4,5,6,7,8,9}
@@ -70,6 +74,10 @@ alt + {KP_End,KP_Down,KP_Next,KP_Left,KP_Begin,KP_Right,KP_Home,KP_Up,KP_Prior,K
 # Switch to workspace index 0 to 9 using Super:
 # AZERTY unshifted top-row keys:
 super + {ampersand,eacute,quotedbl,apostrophe,parenleft,minus,egrave,underscore,ccedilla,agrave}
+    $HOME/.config/sxhkd/scripts/window_manage.py switch {0,1,2,3,4,5,6,7,8,9}
+
+# Standard / Arabic numbers:
+super + {1,2,3,4,5,6,7,8,9,0}
     $HOME/.config/sxhkd/scripts/window_manage.py switch {0,1,2,3,4,5,6,7,8,9}
 
 # Numpad keys:

@@ -26,7 +26,7 @@ sleep 0.5
 wmctrl -n 10 2>/dev/null || true
 
 # 2. Configure System Keyboard Layout (FR AZERTY + Arabic, Win+Space toggle)
-setxkbmap -layout "fr,ara" -variant "azerty," -option "grp:win_space_toggle,terminate:ctrl_alt_bksp" 2>/dev/null || true
+setxkbmap -option "" -layout "fr,ara" -variant "azerty," -option "grp:win_space_toggle,terminate:ctrl_alt_bksp" 2>/dev/null || true
 
 # 2b. Apply Arabic Keycode Corrections for Barrier & AZERTY (Jeem and Thal)
 xmodmap -e "keycode 18 = ccedilla 9 Arabic_jeem parenright asciicircum NoSymbol Arabic_jeem U062C" 2>/dev/null || true
@@ -35,9 +35,9 @@ xmodmap -e "keycode 197 = Arabic_jeem Arabic_jeem Arabic_jeem Arabic_jeem" 2>/de
 xmodmap -e "keycode 202 = Arabic_thal Arabic_thal Arabic_thal Arabic_thal" 2>/dev/null || true
 systemctl --user restart barrier-client.service 2>/dev/null || true
 
-# 3. Configure Whisker Menu / Cinnamon Menu shortcuts (suppress keydown Super trigger)
+# 3. Configure Whisker Menu / Cinnamon Menu shortcuts
 if command -v xfconf-query >/dev/null 2>&1; then
-    xfconf-query -c xfce4-keyboard-shortcuts -p "/commands/custom/Super_L" -n -t string -s "/bin/true" 2>/dev/null || true
+    xfconf-query -c xfce4-keyboard-shortcuts -p "/commands/custom/Super_L" -r 2>/dev/null || true
     xfconf-query -c xfce4-keyboard-shortcuts -p "/commands/custom/<Super>F1" -n -t string -s "xfce4-popup-whiskermenu" 2>/dev/null || true
     for k in KP_End KP_Down KP_Next KP_Left KP_Begin KP_Right KP_Home KP_Up KP_Page_Up KP_Insert; do
         xfconf-query -c xfce4-keyboard-shortcuts -p "/xfwm4/custom/<Super>$k" -r 2>/dev/null || true
@@ -97,7 +97,7 @@ systemctl --user enable --now keepalive.service 2>/dev/null || true
 # Launch Dual-Role Modifier Daemon (xcape: solo Win tap opens menu, combo acts as modifier)
 killall -9 xcape 2>/dev/null || true
 sleep 0.2
-setsid xcape -e 'Super_L=Super_L|F1' </dev/null >/dev/null 2>&1 &
+setsid xcape -t 1000 -e 'Super_L=Super_L|F1;Super_R=Super_L|F1' </dev/null >/dev/null 2>&1 &
 
 # 4. Launch Keybindings Daemon (sxhkd)
 killall -9 sxhkd 2>/dev/null || true
