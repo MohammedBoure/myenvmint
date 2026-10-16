@@ -23,3 +23,7 @@ This directory contains the core management, deployment, and orchestration shell
 - **`speed-translate`**:
   CLI and GUI launcher utility for high-speed Arabic-to-English translation. Can be invoked with arguments (`speed-translate "نص"`) to print and copy translations from the terminal, or invoked without arguments to trigger the ultra-fast resident GTK3 dialog and automatic window paste workflow.
 
+- **`osc52`**:
+  OSC 52 ANSI control sequence clipboard helper for remote SSH sessions and terminal multiplexers. Encodes stdin into base64 and forwards it directly to the local terminal emulator clipboard over SSH.
+
+

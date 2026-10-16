@@ -1,9 +1,10 @@
 // If you'd like to override the default keybindings completely, be sure to change "keybinds" to "keybinds clear-defaults=true"
 keybinds {
     normal {
-        // uncomment this and adjust key if using copy_on_select=false
-        // bind "Alt c" { Copy; }
+        // Explicit clipboard copy via OSC 52 without forwarding SIGINT
+        bind "Ctrl Shift c" "Ctrl Shift C" "Alt c" { Copy; }
     }
+
     locked {
         bind "Ctrl g" { SwitchToMode "Normal"; }
     }
@@ -86,13 +87,15 @@ keybinds {
         bind "[" { ScrollToPreviousPrompt; }
         bind "]" { ScrollToNextPrompt; }
         bind "m" { SelectCommandAtScrollPosition; }
-        bind "c" { CopyLastCommandOutput; SwitchToMode "Normal"; }
-        // uncomment this and adjust key if using copy_on_select=false
-        // bind "Alt c" { Copy; }
+        bind "c" { Copy; SwitchToMode "Normal"; }
+        bind "y" { Copy; SwitchToMode "Normal"; }
+        bind "Ctrl Shift c" "Ctrl Shift C" "Alt c" { Copy; SwitchToMode "Normal"; }
     }
     search {
         bind "Ctrl s" { SwitchToMode "Normal"; }
         bind "Ctrl c" { ScrollToBottom; SwitchToMode "Normal"; }
+        bind "Ctrl Shift c" "Ctrl Shift C" "Alt c" { Copy; SwitchToMode "Normal"; }
+        bind "y" { Copy; SwitchToMode "Normal"; }
         bind "j" "Down" { ScrollDown; }
         bind "k" "Up" { ScrollUp; }
         bind "Ctrl f" "PageDown" "Right" "l" { PageScrollDown; }
@@ -108,6 +111,7 @@ keybinds {
         bind "w" { SearchToggleOption "Wrap"; }
         bind "o" { SearchToggleOption "WholeWord"; }
     }
+
     entersearch {
         bind "Ctrl c" "Esc" { SwitchToMode "Scroll"; }
         bind "Enter" { SwitchToMode "Search"; }
@@ -124,7 +128,9 @@ keybinds {
         bind "Ctrl o" { SwitchToMode "Normal"; }
         bind "Ctrl s" { SwitchToMode "Scroll"; }
         bind "d" { Detach; }
+        bind "q" { Quit; }
         bind "]" { FocusHostSession; SwitchToMode "Normal"; }
+
         bind "[" { FocusGuestSession; SwitchToMode "Normal"; }
         bind "f" { ToggleHostFullscreen; SwitchToMode "Normal"; }
         bind "w" {
@@ -195,7 +201,13 @@ keybinds {
     }
     shared_except "locked" {
         bind "Ctrl g" { SwitchToMode "Locked"; }
-        bind "Ctrl q" { Quit; }
+        // Remap Quit from Ctrl+q to Ctrl+Alt+q so Ctrl+q passes through cleanly to Micro editor
+        bind "Ctrl Alt q" { Quit; }
+        // Quick 1-step background detach
+        bind "Alt d" { Detach; }
+        // Explicit clipboard copy via OSC 52 across all unlocked modes
+        bind "Ctrl Shift c" "Ctrl Shift C" "Alt c" { Copy; }
+
         bind "Alt f" { ToggleFloatingPanes; }
         bind "Alt n" { NewPane; }
         bind "Alt i" { MoveTab "Left"; }
@@ -285,8 +297,9 @@ load_plugins {
 //  Options:
 //    - true
 //    - false (Default)
-//
 // simplified_ui true
+simplified_ui true
+
 
 // Choose the path to the default shell that zellij will use for opening new panes
 // Default: $SHELL
@@ -364,8 +377,9 @@ load_plugins {
 
 // Choose the theme that is specified in the themes section.
 // Default: default
-//
 // theme "default"
+theme "catppuccin-mocha"
+
 
 // Themes to use when the host terminal reports a dark or light color palette.
 // Both must be set for automatic switching to take place, otherwise `theme`
@@ -428,13 +442,15 @@ load_plugins {
 // Options:
 //   - system (default)
 //   - primary
-//
 // copy_clipboard "primary"
+copy_clipboard "system"
 
 // Enable or disable automatic copy (and clear) of selection when releasing mouse
 // Default: true
 //
 // copy_on_select false
+copy_on_select true
+
 
 // Path to the default editor to use to edit pane scrollbuffer
 // Default: $EDITOR or $VISUAL

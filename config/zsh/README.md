@@ -17,6 +17,8 @@ This directory houses the user shell configuration for Zsh.
   - Desktop opener aliases: `start`, `open`, and `explorer` to instantly open the current terminal path in the GUI file manager (Nemo/Thunar).
   - Starship prompt initialization hook (`eval "$(starship init zsh)"`).
   - Zellij Terminal Multiplexer auto-completion integration (`eval "$(zellij setup --generate-completion zsh)"`).
+  - Zellij session workflow helpers: `zj` (attach/create main), `za [session]` (attach/create target session), `zls` (list sessions), `zk [session]` (kill session), `zka` (kill all), and optional interactive SSH auto-attach (`ZELLIJ_AUTO_ATTACH=1`).
 - **`zshenv`**:
+
 
   Pre-initialization environment setting `skip_global_compinit=1` to prevent Ubuntu global shell profiles from conflicting with modern completion frameworks.

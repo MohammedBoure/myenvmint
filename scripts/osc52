@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+# ==============================================================================
+# OSC 52 Clipboard Copy Helper (for SSH & Terminal multiplexers)
+# Encodes stdin into base64 and emits standard OSC 52 ANSI escape sequences
+# directly to the controlling terminal so selection reaches local system clipboard.
+# ==============================================================================
+
+set -e
+
+# Read all input from stdin
+DATA=$(cat)
+
+# Encode to base64 without line wrapping
+if command -v base64 >/dev/null 2>&1; then
+    B64=$(printf "%s" "$DATA" | base64 | tr -d '\r\n')
+elif command -v openssl >/dev/null 2>&1; then
+    B64=$(printf "%s" "$DATA" | openssl base64 | tr -d '\r\n')
+else
+    echo "osc52 error: base64 utility not found" >&2
+    exit 1
+fi
+
+# Target device (controlling terminal)
+TARGET="/dev/tty"
+[ -w "$TARGET" ] || TARGET="/dev/stdout"
+
+# If inside tmux, wrap in DCS pass-through escape
+if [ -n "$TMUX" ]; then
+    printf "\033Ptmux;\033\033]52;c;%s\007\033\\" "$B64" > "$TARGET" 2>/dev/null || true
+else
+    printf "\033]52;c;%s\007" "$B64" > "$TARGET" 2>/dev/null || true
+fi

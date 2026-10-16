@@ -99,6 +99,9 @@ ln -sf "$HOME/.local/bin/start" "$HOME/.local/bin/open" 2>/dev/null || true
 cp "$SCRIPT_DIR/scripts/speed-translate" "$HOME/.local/bin/speed-translate" 2>/dev/null || true
 chmod +x "$HOME/.local/bin/speed-translate" 2>/dev/null || true
 ln -sf "$HOME/.config/sxhkd/scripts/speed_translate_trigger" "$HOME/.local/bin/speed-translate-trigger" 2>/dev/null || true
+cp "$SCRIPT_DIR/scripts/osc52" "$HOME/.local/bin/osc52" 2>/dev/null || true
+chmod +x "$HOME/.local/bin/osc52" 2>/dev/null || true
+
 systemctl --user daemon-reload 2>/dev/null || true
 systemctl --user enable --now keepalive.service 2>/dev/null || true
 if [ -f "$HOME/.config/duckdns/duckdns.env" ] || [ -f "$SCRIPT_DIR/.env" ]; then

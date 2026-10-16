@@ -146,3 +146,37 @@ if command -v zellij >/dev/null 2>&1; then
     eval "$(zellij setup --generate-completion zsh)"
 fi
 
+# ------------------------------------------------------------------------------
+# 11. Zellij Session Management & Workflow Optimization
+# ------------------------------------------------------------------------------
+if command -v zellij >/dev/null 2>&1; then
+    # Quick attach to 'main' session (or create if not present)
+    alias zj='zellij attach -c main'
+    # List active sessions
+    alias zls='zellij list-sessions'
+    # Kill all sessions
+    alias zka='zellij kill-all-sessions'
+
+    # Quick attach wrapper: za [session_name] (defaults to 'main')
+    za() {
+        local session="${1:-main}"
+        zellij attach -c "$session"
+    }
+
+    # Quick kill session: zk [session_name]
+    zk() {
+        if [ -n "$1" ]; then
+            zellij kill-session "$1"
+        else
+            echo "Usage: zk <session-name>"
+        fi
+    }
+
+    # Auto-attach to Zellij on interactive SSH login when ZELLIJ_AUTO_ATTACH=1
+    # Enable by adding 'export ZELLIJ_AUTO_ATTACH=1' to ~/.zshenv or shell profile
+    if [[ -n "$SSH_CONNECTION" || -n "$SSH_CLIENT" ]] && [[ -z "$ZELLIJ" && -t 0 && -t 1 && "${ZELLIJ_AUTO_ATTACH:-0}" == "1" ]]; then
+        exec zellij attach -c main
+    fi
+fi
+
+
