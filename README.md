@@ -32,6 +32,7 @@ A comprehensive, fully tracked desktop configuration environment that implements
 │   ├── powershell/               # Cross-platform PowerShell configuration
 │   │   └── Microsoft.PowerShell_profile.ps1 # PSReadLine ListView predictive history profile
 │   ├── micro/                    # Micro editor settings, bindings, and productivity plugins (filemanager, fzf, editorconfig, bookmark, snippets)
+│   ├── zellij/                   # Zellij terminal multiplexer configuration & SessionX session manager
 │   ├── barrier/                  # Barrier KVM keyboard/mouse sharing client config
 │   ├── duckdns/                  # DuckDNS dynamic DNS configuration templates
 │   ├── lazygit/                  # Lazygit terminal GUI configuration
@@ -51,6 +52,7 @@ A comprehensive, fully tracked desktop configuration environment that implements
 │   ├── init-desktop.sh           # Master desktop startup orchestrator
 │   ├── apply.sh                  # Instant configuration sync and daemon reload script
 │   ├── install.sh                # Full fresh-system installation script
+│   ├── sessionx                  # Interactive Zellij session manager (fuzzy switcher, rename, kill)
 │   └── duckdns-update.sh         # Dynamic DNS updater script for DuckDNS
 ├── system/                       # System-level configurations and backups
 │   ├── keyboard.conf             # /etc/default/keyboard layout template

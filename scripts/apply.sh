@@ -101,6 +101,8 @@ chmod +x "$HOME/.local/bin/speed-translate" 2>/dev/null || true
 ln -sf "$HOME/.config/sxhkd/scripts/speed_translate_trigger" "$HOME/.local/bin/speed-translate-trigger" 2>/dev/null || true
 cp "$SCRIPT_DIR/scripts/osc52" "$HOME/.local/bin/osc52" 2>/dev/null || true
 chmod +x "$HOME/.local/bin/osc52" 2>/dev/null || true
+cp "$SCRIPT_DIR/scripts/sessionx" "$HOME/.local/bin/sessionx" 2>/dev/null || true
+chmod +x "$HOME/.local/bin/sessionx" 2>/dev/null || true
 
 systemctl --user daemon-reload 2>/dev/null || true
 systemctl --user enable --now keepalive.service 2>/dev/null || true

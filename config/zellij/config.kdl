@@ -134,7 +134,7 @@ keybinds {
         bind "[" { FocusGuestSession; SwitchToMode "Normal"; }
         bind "f" { ToggleHostFullscreen; SwitchToMode "Normal"; }
         bind "w" {
-            LaunchOrFocusPlugin "session-manager" {
+            LaunchOrFocusPlugin "sessionx" {
                 floating true
                 move_to_focused_tab true
             };
@@ -205,6 +205,14 @@ keybinds {
         bind "Ctrl Alt q" { Quit; }
         // Quick 1-step background detach
         bind "Alt d" { Detach; }
+        // Direct ergonomic shortcut to SessionX across all unlocked modes
+        bind "Alt s" {
+            LaunchOrFocusPlugin "sessionx" {
+                floating true
+                move_to_focused_tab true
+            };
+            SwitchToMode "Normal"
+        }
         // Explicit clipboard copy via OSC 52 across all unlocked modes
         bind "Ctrl Shift c" "Ctrl Shift C" "Alt c" { Copy; }
 
@@ -257,6 +265,9 @@ plugins {
     strider location="zellij:strider"
     compact-bar location="zellij:compact-bar"
     session-manager location="zellij:session-manager"
+    sessionx location="zellij:session-manager" {
+        welcome_screen false
+    }
     welcome-screen location="zellij:session-manager" {
         welcome_screen true
     }

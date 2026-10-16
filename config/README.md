@@ -12,6 +12,7 @@ This directory houses all user configuration bundles and dotfiles that define th
 - **`starship/`**: Starship prompt preset (`starship.toml`).
 - **`zsh/`**: Zsh shell configuration (`zshrc`).
 - **`micro/`**: Micro editor configurations (`bindings.json`, `settings.json`, and productivity plugins including `filemanager`, `fzf`, `editorconfig`, `bookmark`, `snippets`).
+- **`zellij/`**: Zellij terminal multiplexer configuration (`config.kdl`) with SessionX session manager integration (`Alt + s` and `Ctrl + o` then `w`).
 - **`barrier/`**: KVM mouse and keyboard network sharing configuration (`Barrier.conf`).
 - **`lazygit/`**: Lazygit terminal UI configuration (`config.yml`).
 - **`ranger/`**: Ranger console file manager configuration.
