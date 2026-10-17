@@ -1,0 +1,102 @@
+#!/usr/bin/env bash
+# ==============================================================================
+# Zellij Smart Wrapper
+# ==============================================================================
+# Intercepts Zellij execution to prevent accidental session creation:
+# 1. Supports `zellij new [name]` / `zellij create [name]` for explicit creation
+# 2. When called with no arguments:
+#    - If already inside Zellij: alerts without nesting
+#    - If 1 active session: attaches directly
+#    - If >1 active sessions: launches SessionX fuzzy picker
+#    - If 0 active sessions: asks confirmation before creating
+# 3. Transparently passes all standard arguments to the real binary
+# ==============================================================================
+
+set -eo pipefail
+
+REAL_ZELLIJ=""
+if [ -x "$HOME/.local/bin/zellij-bin" ]; then
+    REAL_ZELLIJ="$HOME/.local/bin/zellij-bin"
+elif [ -x "/usr/local/bin/zellij-bin" ]; then
+    REAL_ZELLIJ="/usr/local/bin/zellij-bin"
+elif [ -x "/usr/bin/zellij-bin" ]; then
+    REAL_ZELLIJ="/usr/bin/zellij-bin"
+fi
+
+if [ -z "$REAL_ZELLIJ" ]; then
+    echo "Error: zellij-bin binary not found." >&2
+    exit 1
+fi
+
+# 1. Handle explicit subcommands / arguments
+if [ $# -gt 0 ]; then
+    case "$1" in
+        new|create)
+            shift
+            if [ -n "$1" ]; then
+                exec "$REAL_ZELLIJ" -s "$1"
+            else
+                printf "New session name (leave empty for default): "
+                read -r sname
+                if [ -n "$sname" ]; then
+                    exec "$REAL_ZELLIJ" -s "$sname"
+                else
+                    exec "$REAL_ZELLIJ"
+                fi
+            fi
+            ;;
+        *)
+            exec "$REAL_ZELLIJ" "$@"
+            ;;
+    esac
+fi
+
+# 2. Non-interactive fallback
+if [ ! -t 0 ]; then
+    exec "$REAL_ZELLIJ" "$@"
+fi
+
+# 3. Prevent unwanted nested sessions if already inside Zellij
+if [ -n "$ZELLIJ" ]; then
+    echo "Already inside Zellij session '${ZELLIJ_SESSION_NAME:-active}'."
+    if command -v sessionx >/dev/null 2>&1; then
+        echo "Tip: Press 'Alt + s' or run 'sessionx' to switch/manage sessions."
+    fi
+    exit 0
+fi
+
+# 4. Check existing active sessions (exclude EXITED sessions)
+active_sessions=$("$REAL_ZELLIJ" list-sessions -n 2>/dev/null | grep -v '\[EXITED' || true)
+
+session_count=0
+if [ -n "$active_sessions" ]; then
+    session_count=$(echo "$active_sessions" | grep -c '^[a-zA-Z0-9_-]' || true)
+fi
+
+if [ "$session_count" -eq 1 ]; then
+    sname=$(echo "$active_sessions" | head -n1 | awk '{print $1}')
+    echo "Attaching to active session: $sname"
+    exec "$REAL_ZELLIJ" attach "$sname"
+elif [ "$session_count" -gt 1 ]; then
+    if command -v sessionx >/dev/null 2>&1; then
+        exec sessionx
+    else
+        exec "$REAL_ZELLIJ" attach
+    fi
+else
+    echo "No active Zellij sessions found."
+    printf "Create a new session? [y/N]: "
+    read -r resp
+    if [[ "$resp" =~ ^[Yy]$ ]]; then
+        printf "Session name (leave empty for default): "
+        read -r sname
+        if [ -n "$sname" ]; then
+            exec "$REAL_ZELLIJ" -s "$sname"
+        else
+            exec "$REAL_ZELLIJ"
+        fi
+    else
+        echo "Session creation cancelled. (To create manually: 'zellij new <name>' or 'zn <name>')"
+        exit 0
+    fi
+fi

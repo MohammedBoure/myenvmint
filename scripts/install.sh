@@ -54,12 +54,15 @@ if ! command -v lazygit >/dev/null 2>&1; then
 fi
 
 # 5b. Install Zellij if missing
-if ! command -v zellij >/dev/null 2>&1; then
+if ! command -v zellij-bin >/dev/null 2>&1; then
     echo "==> Step 4b: Installing Zellij Terminal Multiplexer..."
     mkdir -p "$HOME/.local/bin"
     curl -sL "https://github.com/zellij-org/zellij/releases/latest/download/zellij-x86_64-unknown-linux-musl.tar.gz" | tar -xz -C "$HOME/.local/bin"
-    chmod +x "$HOME/.local/bin/zellij"
+    mv "$HOME/.local/bin/zellij" "$HOME/.local/bin/zellij-bin"
+    chmod +x "$HOME/.local/bin/zellij-bin"
 fi
+cp "$SCRIPT_DIR/scripts/zellij" "$HOME/.local/bin/zellij" 2>/dev/null || true
+chmod +x "$HOME/.local/bin/zellij" 2>/dev/null || true
 
 
 # 6. Clone Zsh plugins if missing

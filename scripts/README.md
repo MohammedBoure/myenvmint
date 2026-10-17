@@ -29,4 +29,7 @@ This directory contains the core management, deployment, and orchestration shell
 - **`sessionx`**:
   Interactive fuzzy-finder session manager for Zellij (installed to `~/.local/bin/sessionx`). Lists all active and exited sessions with visual indicators (`[CURRENT]`, `[ACTIVE]`, `[EXITED]`), and provides rapid single-key actions for attach/switch (`Enter`), rename (`Ctrl + r`), kill (`Ctrl + x` / `Ctrl + d`), and creating new sessions (`Ctrl + n`).
 
+- **`zellij`**:
+  Smart binary wrapper installed to `~/.local/bin/zellij` managing the underlying `zellij-bin` executable. Prevents unwanted session creation upon startup, supports intuitive `new`/`create` subcommands (`zellij new <name>`), automatically attaches to single active sessions, opens SessionX when multiple sessions exist, and prompts for explicit confirmation before creating a session when none exist.
+
 
