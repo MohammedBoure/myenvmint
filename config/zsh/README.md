@@ -16,8 +16,7 @@ This directory houses the user shell configuration for Zsh.
   - Integration with `fzf` for fuzzy popup command history (`Ctrl+R`) and directory navigation (`Alt+C`).
   - Desktop opener aliases: `start`, `open`, and `explorer` to instantly open the current terminal path in the GUI file manager (Nemo/Thunar).
   - Starship prompt initialization hook (`eval "$(starship init zsh)"`).
-  - Zellij Terminal Multiplexer auto-completion integration (`eval "$(zellij setup --generate-completion zsh)"`).
-  - Zellij session workflow helpers: `zj` (attach/create main), `za [session]` (attach/create target session), `zls` (list sessions), `zk [session]` (kill session), `zka` (kill all), and optional interactive SSH auto-attach (`ZELLIJ_AUTO_ATTACH=1`).
+  - Zellij intelligent session workflow: Smart `zellij` wrapper preventing accidental/unwanted session generation (attaches to the sole active session if 1 exists, opens SessionX picker if multiple exist, or prompts before creation if 0 exist). Provides explicit session creators `zn [name]` / `zc [name]` / `zellij new [name]`, smart attach `zj` and `za [session]`, `zls` (list sessions), `zk <session>` (kill session), `zka` (kill all), and SSH auto-attach (`ZELLIJ_AUTO_ATTACH=1`).
 - **`zshenv`**:
 
 

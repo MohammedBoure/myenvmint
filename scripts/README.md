@@ -27,6 +27,6 @@ This directory contains the core management, deployment, and orchestration shell
   OSC 52 ANSI control sequence clipboard helper for remote SSH sessions and terminal multiplexers. Encodes stdin into base64 and forwards it directly to the local terminal emulator clipboard over SSH.
 
 - **`sessionx`**:
-  Interactive fuzzy-finder session manager for Zellij (installed to `~/.local/bin/sessionx`). Lists all active and exited sessions with visual indicators (`[CURRENT]`, `[ACTIVE]`), and provides rapid single-key actions for attach/switch (`Enter`), rename (`Ctrl + r`), kill (`Ctrl + x` / `Ctrl + d`), and creating new sessions (`Ctrl + n`).
+  Interactive fuzzy-finder session manager for Zellij (installed to `~/.local/bin/sessionx`). Lists all active and exited sessions with visual indicators (`[CURRENT]`, `[ACTIVE]`, `[EXITED]`), and provides rapid single-key actions for attach/switch (`Enter`), rename (`Ctrl + r`), kill (`Ctrl + x` / `Ctrl + d`), and creating new sessions (`Ctrl + n`).
 
 
