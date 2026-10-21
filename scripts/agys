@@ -59,8 +59,8 @@ ensure_instance() {
             fi
         done
 
-        # Explicitly DO NOT copy authentication tokens or settings with credentials
-        # Each instance maintains its own login session and oauth tokens
+        # Explicitly DO NOT copy authentication tokens or settings with credentials.
+        # Each instance maintains its own login session and oauth tokens.
     fi
 }
 
@@ -72,24 +72,27 @@ run_instance() {
     check_prerequisites
     ensure_instance "$inst_id"
 
-    # Unset DBUS_SESSION_BUS_ADDRESS to isolate system keyring / secrets storage,
-    # ensuring agy saves the login token strictly to each instance's ~/.gemini file storage.
+    # Isolate system keyring and D-Bus session bus completely.
+    # By masking /run/user with a tmpfs and unsetting DBUS_SESSION_BUS_ADDRESS,
+    # agy cannot access the shared desktop keyring service, forcing it to save
+    # and restore authentication tokens strictly within each instance's ~/.gemini folder.
     exec env -u DBUS_SESSION_BUS_ADDRESS bwrap \
         --dev-bind / / \
+        --tmpfs /run/user \
         --bind "$inst_gemini_dir" "$HOME/.gemini" \
         agy "$@"
 }
 
 list_instances() {
-    echo "=================================================================="
-    echo "                 AGY Multi-Instance Registry                      "
-    echo "=================================================================="
-    printf "%-10s | %-12s | %-10s | %s\n" "INSTANCE" "AUTH STATUS" "STORAGE" "LOCATION"
-    echo "------------------------------------------------------------------"
+    echo "=========================================================================================="
+    echo "                              AGY Multi-Instance Registry                                 "
+    echo "=========================================================================================="
+    printf "%-10s | %-12s | %-28s | %-8s | %s\n" "INSTANCE" "AUTH STATUS" "ACCOUNT / EMAIL" "STORAGE" "LOCATION"
+    echo "------------------------------------------------------------------------------------------"
 
     if [ ! -d "$INSTANCES_BASE_DIR" ] || [ -z "$(ls -A "$INSTANCES_BASE_DIR" 2>/dev/null)" ]; then
         echo "No agy instances found. Run 'agy1', 'agy2', etc. to create one."
-        echo "=================================================================="
+        echo "=========================================================================================="
         return 0
     fi
 
@@ -98,7 +101,7 @@ list_instances() {
 
     if [ -z "$ids" ]; then
         echo "No agy instances found. Run 'agy1', 'agy2', etc. to create one."
-        echo "=================================================================="
+        echo "=========================================================================================="
         return 0
     fi
 
@@ -107,18 +110,36 @@ list_instances() {
         local name="agy${id}"
         local gemini_dir="$dir/.gemini"
         local auth_status="Logged Out"
+        local email="-"
 
-        if [ -f "$gemini_dir/antigravity-cli/antigravity-oauth-token" ]; then
+        local token_file="$gemini_dir/antigravity-cli/antigravity-oauth-token"
+        if [ -f "$token_file" ]; then
             auth_status="Logged In"
+            email=$(python3 -c "
+import json, base64, sys
+try:
+    with open('$token_file') as f:
+        d = json.load(f)
+    token = d.get('id_token', '')
+    if token:
+        parts = token.split('.')
+        payload = parts[1] + '=' * (-len(parts[1]) % 4)
+        info = json.loads(base64.urlsafe_b64decode(payload))
+        print(info.get('email', '-'))
+    else:
+        print('-')
+except Exception:
+    print('-')
+" 2>/dev/null || echo "-")
         elif [ -f "$gemini_dir/antigravity-cli/settings.json" ]; then
             auth_status="Configured"
         fi
 
         local disk_size
         disk_size=$(du -sh "$dir" 2>/dev/null | cut -f1)
-        printf "%-10s | %-12s | %-10s | %s\n" "$name" "$auth_status" "$disk_size" "$dir"
+        printf "%-10s | %-12s | %-28s | %-8s | %s\n" "$name" "$auth_status" "$email" "$disk_size" "$dir"
     done
-    echo "=================================================================="
+    echo "=========================================================================================="
 }
 
 delete_instance() {
