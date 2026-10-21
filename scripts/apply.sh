@@ -123,6 +123,12 @@ chmod +x "$HOME/.xprofile"
 cp "$SCRIPT_DIR/scripts/init-desktop.sh" "$HOME/.config/myenvmint/init-desktop.sh"
 chmod +x "$HOME/.config/myenvmint/init-desktop.sh"
 
+# Adapt user paths for universal installation across any username
+sed -i "s|/home/pluto|$HOME|g" "$HOME/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-panel.xml" 2>/dev/null || true
+sed -i "s|/home/pluto|$HOME|g" "$HOME/.config/Debauchee/Barrier.conf" 2>/dev/null || true
+sed -i "s|/home/pluto|$HOME|g" "$HOME/.gemini/antigravity-cli/settings.json" 2>/dev/null || true
+sed -i "s|/home/pluto|$HOME|g" "$HOME/.config/autostart/myenvmint-init.desktop" 2>/dev/null || true
+
 # Apply desktop keyboard shortcuts & Whisker Menu settings
 if command -v xfconf-query >/dev/null 2>&1; then
     xfconf-query -c keyboard-layout -p /Default/XkbOptions/Group -s "grp:win_space_toggle" 2>/dev/null || true

@@ -2,7 +2,7 @@
 Type=Application
 Name=MyEnvMint Desktop Initialization
 Comment=Ensures GlazeWM tiling, sxhkd shortcuts, polybar, picom, and dual-role super key start reliably
-Exec=/bin/bash /home/pluto/.config/myenvmint/init-desktop.sh
+Exec=/bin/bash -c '"$HOME/.config/myenvmint/init-desktop.sh"'
 Terminal=false
 Hidden=false
 NoDisplay=false

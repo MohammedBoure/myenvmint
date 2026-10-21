@@ -17,6 +17,8 @@ echo "==> Deploying MyEnvMint from: $SCRIPT_DIR"
 echo "==> Step 1: Installing system packages via apt..."
 sudo apt-get update
 sudo apt-get install -y \
+    build-essential xclip libnotify-bin python3-gi python3-gi-cairo gir1.2-gtk-3.0 \
+    zenity file bc unzip \
     sxhkd wmctrl xdotool jq polybar picom xcape vnstat \
     zsh git curl fzf ranger barrier moonlight-qt bubblewrap \
     fonts-jetbrains-mono fonts-firacode fonts-font-awesome papirus-icon-theme
@@ -61,10 +63,28 @@ if ! command -v zellij-bin >/dev/null 2>&1; then
     mv "$HOME/.local/bin/zellij" "$HOME/.local/bin/zellij-bin"
     chmod +x "$HOME/.local/bin/zellij-bin"
 fi
+
+# Deploy helper CLI utilities and wrappers to ~/.local/bin
+mkdir -p "$HOME/.local/bin"
 cp "$SCRIPT_DIR/scripts/zellij" "$HOME/.local/bin/zellij" 2>/dev/null || true
 chmod +x "$HOME/.local/bin/zellij" 2>/dev/null || true
 cp "$SCRIPT_DIR/scripts/agys" "$HOME/.local/bin/agys" 2>/dev/null || true
 chmod +x "$HOME/.local/bin/agys" 2>/dev/null || true
+cp "$SCRIPT_DIR/scripts/sessionx" "$HOME/.local/bin/sessionx" 2>/dev/null || true
+chmod +x "$HOME/.local/bin/sessionx" 2>/dev/null || true
+cp "$SCRIPT_DIR/scripts/start" "$HOME/.local/bin/start" 2>/dev/null || true
+chmod +x "$HOME/.local/bin/start" 2>/dev/null || true
+ln -sf "$HOME/.local/bin/start" "$HOME/.local/bin/explorer" 2>/dev/null || true
+ln -sf "$HOME/.local/bin/start" "$HOME/.local/bin/open" 2>/dev/null || true
+cp "$SCRIPT_DIR/scripts/speed-translate" "$HOME/.local/bin/speed-translate" 2>/dev/null || true
+chmod +x "$HOME/.local/bin/speed-translate" 2>/dev/null || true
+cp "$SCRIPT_DIR/scripts/osc52" "$HOME/.local/bin/osc52" 2>/dev/null || true
+chmod +x "$HOME/.local/bin/osc52" 2>/dev/null || true
+
+# Ensure ~/.local/bin is in PATH for login shells
+if ! grep -q '\.local/bin' "$HOME/.profile" 2>/dev/null; then
+    echo 'export PATH="$HOME/.local/bin:$PATH"' >> "$HOME/.profile"
+fi
 
 
 # 6. Clone Zsh plugins if missing
@@ -90,12 +110,13 @@ else
 fi
 
 # 9. Deploy all user configuration files
-echo "==> Step 8: Deploying configuration files..."
+echo "==> Step 10: Deploying configuration files & compiling native helpers..."
 mkdir -p "$HOME/.config/sxhkd/scripts"
 mkdir -p "$HOME/.config/polybar/scripts"
 mkdir -p "$HOME/.config/picom"
 mkdir -p "$HOME/.config/autostart"
 mkdir -p "$HOME/.config/micro/plug"
+mkdir -p "$HOME/.config/micro/colorschemes"
 mkdir -p "$HOME/.config/Debauchee"
 mkdir -p "$HOME/.config/lazygit"
 mkdir -p "$HOME/.config/ranger"
@@ -107,9 +128,14 @@ mkdir -p "$HOME/.config/cinnamon/spices"
 mkdir -p "$HOME/.config/xfce4/xfconf/xfce-perchannel-xml"
 mkdir -p "$HOME/.config/xfce4/panel"
 
-# Sxhkd
+# Sxhkd & Speed Translate Trigger compilation
 cp -r "$SCRIPT_DIR/config/sxhkd/"* "$HOME/.config/sxhkd/"
 chmod +x "$HOME/.config/sxhkd/scripts/"*.py
+if [ -f "$HOME/.config/sxhkd/scripts/speed_translate_trigger.c" ]; then
+    gcc -O3 "$HOME/.config/sxhkd/scripts/speed_translate_trigger.c" -o "$HOME/.config/sxhkd/scripts/speed_translate_trigger" 2>/dev/null || true
+fi
+chmod +x "$HOME/.config/sxhkd/scripts/speed_translate_trigger" 2>/dev/null || true
+ln -sf "$HOME/.config/sxhkd/scripts/speed_translate_trigger" "$HOME/.local/bin/speed-translate-trigger" 2>/dev/null || true
 
 # Polybar
 cp -r "$SCRIPT_DIR/config/polybar/"* "$HOME/.config/polybar/"
@@ -126,20 +152,20 @@ cp "$SCRIPT_DIR/config/zsh/zshenv" "$HOME/.zshenv" 2>/dev/null || true
 mkdir -p "$HOME/.config/powershell"
 cp "$SCRIPT_DIR/config/powershell/Microsoft.PowerShell_profile.ps1" "$HOME/.config/powershell/Microsoft.PowerShell_profile.ps1" 2>/dev/null || true
 
-# Micro Editor Config & Plugins
+# Micro Editor Config, Plugins & Colorschemes
 cp "$SCRIPT_DIR/config/micro/bindings.json" "$HOME/.config/micro/bindings.json" 2>/dev/null || true
 cp "$SCRIPT_DIR/config/micro/settings.json" "$HOME/.config/micro/settings.json" 2>/dev/null || true
 cp -r "$SCRIPT_DIR/config/micro/plug/"* "$HOME/.config/micro/plug/" 2>/dev/null || true
+cp -r "$SCRIPT_DIR/config/micro/colorschemes/"* "$HOME/.config/micro/colorschemes/" 2>/dev/null || true
 
 # Barrier Config
 cp "$SCRIPT_DIR/config/barrier/Barrier.conf" "$HOME/.config/Debauchee/Barrier.conf" 2>/dev/null || true
 
-# Lazygit & Ranger & Xed
+# Lazygit & Ranger & Xed & Zellij
 cp -r "$SCRIPT_DIR/config/lazygit/"* "$HOME/.config/lazygit/" 2>/dev/null || true
 cp -r "$SCRIPT_DIR/config/ranger/"* "$HOME/.config/ranger/" 2>/dev/null || true
 cp -r "$SCRIPT_DIR/config/xed/"* "$HOME/.config/xed/" 2>/dev/null || true
 cp -r "$SCRIPT_DIR/config/zellij/"* "$HOME/.config/zellij/" 2>/dev/null || true
-
 
 # Copy Custom Desktop Themes & GTK3 CSS (High-Contrast Window Borders)
 mkdir -p "$HOME/.themes" "$HOME/.config/gtk-3.0"
@@ -189,8 +215,14 @@ chmod +x "$HOME/.xprofile"
 cp "$SCRIPT_DIR/scripts/init-desktop.sh" "$HOME/.config/myenvmint/init-desktop.sh"
 chmod +x "$HOME/.config/myenvmint/init-desktop.sh"
 
-# 9. Apply System & Desktop Settings
-echo "==> Step 8: Applying system keyboard & desktop settings..."
+# Adapt user paths for universal installation across any username
+sed -i "s|/home/pluto|$HOME|g" "$HOME/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-panel.xml" 2>/dev/null || true
+sed -i "s|/home/pluto|$HOME|g" "$HOME/.config/Debauchee/Barrier.conf" 2>/dev/null || true
+sed -i "s|/home/pluto|$HOME|g" "$HOME/.gemini/antigravity-cli/settings.json" 2>/dev/null || true
+sed -i "s|/home/pluto|$HOME|g" "$HOME/.config/autostart/myenvmint-init.desktop" 2>/dev/null || true
+
+# 11. Apply System & Desktop Settings
+echo "==> Step 11: Applying system keyboard & desktop settings..."
 if [ -f "$SCRIPT_DIR/system/keyboard.conf" ]; then
     sudo cp "$SCRIPT_DIR/system/keyboard.conf" /etc/default/keyboard
     sudo udevadm trigger --subsystem-match=input 2>/dev/null || true
@@ -210,6 +242,15 @@ if command -v xfconf-query >/dev/null 2>&1; then
         xfconf-query -c xfce4-keyboard-shortcuts -p "/xfwm4/custom/<Alt><Control>$k" -n -t string -s "" 2>/dev/null || true
         xfconf-query -c xfce4-keyboard-shortcuts -p "/xfwm4/custom/<Primary><Alt>$k" -n -t string -s "" 2>/dev/null || true
     done
+    xfconf-query -c xfce4-keyboard-shortcuts -p "/commands/custom/<Super><Shift>s" -r 2>/dev/null || true
+    xfconf-query -c xfce4-keyboard-shortcuts -p "/commands/custom/<Super><Shift>S" -r 2>/dev/null || true
+    xfconf-query -c xfce4-keyboard-shortcuts -p "/commands/custom/<Super><Shift>x" -r 2>/dev/null || true
+    xfconf-query -c xfce4-keyboard-shortcuts -p "/commands/custom/<Super><Shift>X" -r 2>/dev/null || true
+    xfconf-query -c xfce4-panel -p /panels/panel-1/position -n -t string -s "p=10;x=0;y=0" 2>/dev/null || true
+    xfconf-query -c xfce4-panel -p /panels/panel-1/autohide-behavior -n -t uint -s 2 2>/dev/null || true
+    xfconf-query -c xfce4-panel -p /panels/panel-1/position-locked -n -t bool -s true 2>/dev/null || true
+    xfconf-query -c xfce4-panel -p /panels/panel-1/length -n -t uint -s 100 2>/dev/null || true
+    xfconf-query -c xfce4-panel -p /plugins/plugin-1 -n -t string -s "whiskermenu" 2>/dev/null || true
     xfconf-query -c xfwm4 -p /general/theme -s "MyEnvMint-Dark" 2>/dev/null || true
 fi
 
@@ -217,10 +258,11 @@ fi
 if command -v dconf >/dev/null 2>&1; then
     dconf write /org/cinnamon/menu-key-binding "'<Super>F1'" 2>/dev/null || true
     dconf write /org/cinnamon/desktop/keybindings/wm/panel-main-menu "['<Super>F1']" 2>/dev/null || true
+    dconf write /org/cinnamon/desktop/keybindings/media-keys/area-screenshot-clip "['<Super><Shift>s', '<Super><Shift>S', '<Control><Shift>Print']" 2>/dev/null || true
 fi
 
-# 10. Start / Reload Desktop Daemons
-echo "==> Step 9: Starting all desktop daemons..."
+# 12. Start / Reload Desktop Daemons
+echo "==> Step 12: Starting all desktop daemons..."
 /bin/bash "$HOME/.config/myenvmint/init-desktop.sh"
 
 echo "==> MyEnvMint has been successfully installed, customized, and launched!"
