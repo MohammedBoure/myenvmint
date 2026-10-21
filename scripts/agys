@@ -15,6 +15,7 @@ agys - Antigravity Multi-Instance CLI Manager
 
 Usage:
   agys -l | --list             List all existing agy instances and their statuses
+  agys -u | --usage | -usage   Show collective quota and usage limits table for all accounts
   agys -r | --run <N> [args..] Run instance agy<N> with optional arguments
   agys -d | --delete <N>       Delete an instance and its isolated environment
   agys -h | --help             Show this help message
@@ -166,6 +167,259 @@ except Exception:
     echo "=========================================================================================="
 }
 
+show_usage() {
+    python3 - "$INSTANCES_BASE_DIR" << 'PY_EOF'
+import os, sys, json, base64, urllib.request, urllib.parse, concurrent.futures, re
+from datetime import datetime, timezone
+
+base_dir = sys.argv[1]
+
+def get_oauth_creds():
+    import shutil
+    agy_bin = shutil.which('agy') or os.path.expanduser('~/.local/bin/agy')
+    try:
+        with open(agy_bin, 'rb') as f:
+            content = f.read()
+        cid = [i.decode() for i in re.findall(rb'[0-9]+-[a-z0-9_]+\.apps\.googleusercontent\.com', content) if b'1071006060591' in i][0]
+        csec = [s.decode() for s in re.findall(rb'GOCSPX-[A-Za-z0-9_-]{28}', content) if b'LdLJ1' in s][0]
+        return cid, csec
+    except Exception:
+        return None, None
+
+CLIENT_ID, CLIENT_SECRET = get_oauth_creds()
+
+def format_countdown(iso_str):
+    if not iso_str:
+        return ''
+    try:
+        t = datetime.fromisoformat(iso_str.replace('Z', '+00:00'))
+        now = datetime.now(timezone.utc)
+        diff = t - now
+        total_sec = int(diff.total_seconds())
+        if total_sec <= 0:
+            return 'Now'
+        hours, rem = divmod(total_sec, 3600)
+        minutes = rem // 60
+        if hours > 24:
+            days = hours // 24
+            return f'{days}d {hours%24}h'
+        elif hours > 0:
+            return f'{hours}h {minutes}m'
+        else:
+            return f'{minutes}m'
+    except Exception:
+        return ''
+
+def visible_len(s):
+    return len(re.sub(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])', '', s))
+
+def pad_str(s, width, align='left'):
+    vlen = visible_len(s)
+    pad = max(0, width - vlen)
+    if align == 'right':
+        return ' ' * pad + s
+    elif align == 'center':
+        left = pad // 2
+        right = pad - left
+        return ' ' * left + s + ' ' * right
+    return s + ' ' * pad
+
+def make_bar(fraction, width=10):
+    if fraction is None:
+        return '\033[90m[' + '─' * width + ']   -  \033[0m'
+    pct = max(0.0, min(1.0, float(fraction))) * 100
+    filled = int(round(width * (pct / 100.0)))
+    empty = width - filled
+    
+    if pct >= 50:
+        color = '\033[38;5;82m'   # bright green
+    elif pct >= 20:
+        color = '\033[38;5;214m'  # warm yellow/amber
+    else:
+        color = '\033[38;5;196m'  # red
+    
+    bar_str = '█' * filled + '░' * empty
+    return f'{color}[{bar_str}] {pct:5.1f}%\033[0m'
+
+def fetch_inst(inst_path):
+    inst_name = os.path.basename(inst_path)
+    token_file = os.path.join(inst_path, '.gemini/antigravity-cli/antigravity-oauth-token')
+    
+    if not os.path.isfile(token_file):
+        return {
+            'instance': inst_name,
+            'email': '-',
+            'status': '\033[90mLogged Out\033[0m',
+            'hourly_str': '-',
+            'weekly_str': '-',
+            'fraction': None,
+            'is_active': False
+        }
+    
+    try:
+        with open(token_file) as f:
+            token_data = json.load(f)
+        
+        email = '-'
+        id_token = token_data.get('id_token', '')
+        if id_token:
+            parts = id_token.split('.')
+            payload = parts[1] + '=' * (-len(parts[1]) % 4)
+            info = json.loads(base64.urlsafe_b64decode(payload))
+            email = info.get('email', '-')
+        
+        token_obj = token_data.get('token', {})
+        access_token = token_obj.get('access_token')
+        refresh_token = token_obj.get('refresh_token')
+        
+        def call_api(endpoint, atk):
+            url = f'https://daily-cloudcode-pa.googleapis.com/v1internal:{endpoint}'
+            req = urllib.request.Request(
+                url,
+                headers={'Authorization': f'Bearer {atk}', 'Content-Type': 'application/json', 'User-Agent': 'Antigravity/1.4.4'},
+                data=b'{}'
+            )
+            with urllib.request.urlopen(req, timeout=5) as resp:
+                return json.loads(resp.read().decode())
+        
+        q_summary = None
+        models_res = None
+        try:
+            q_summary = call_api('retrieveUserQuotaSummary', access_token)
+            models_res = call_api('fetchAvailableModels', access_token)
+        except Exception:
+            if refresh_token:
+                r_req = urllib.request.Request(
+                    'https://oauth2.googleapis.com/token',
+                    data=urllib.parse.urlencode({
+                        'client_id': CLIENT_ID,
+                        'client_secret': CLIENT_SECRET,
+                        'refresh_token': refresh_token,
+                        'grant_type': 'refresh_token'
+                    }).encode('utf-8'),
+                    headers={'Content-Type': 'application/x-www-form-urlencoded'}
+                )
+                with urllib.request.urlopen(r_req, timeout=5) as r_resp:
+                    new_tok = json.loads(r_resp.read().decode())
+                access_token = new_tok['access_token']
+                token_obj['access_token'] = access_token
+                token_data['token'] = token_obj
+                with open(token_file, 'w') as f:
+                    json.dump(token_data, f, indent=2)
+                q_summary = call_api('retrieveUserQuotaSummary', access_token)
+                models_res = call_api('fetchAvailableModels', access_token)
+            else:
+                return {
+                    'instance': inst_name,
+                    'email': email,
+                    'status': '\033[33mAuth Expired\033[0m',
+                    'hourly_str': '-',
+                    'weekly_str': '-',
+                    'fraction': None,
+                    'is_active': False
+                }
+        
+        weekly_frac = 1.0
+        weekly_reset = ''
+        if q_summary:
+            for g in q_summary.get('groups', []):
+                for b in g.get('buckets', []):
+                    if b.get('window') == 'weekly':
+                        weekly_frac = b.get('remainingFraction', 1.0)
+                        weekly_reset = format_countdown(b.get('resetTime'))
+                        break
+        
+        hourly_frac = 1.0
+        hourly_reset = ''
+        if models_res:
+            for mk, mv in models_res.get('models', {}).items():
+                if 'flash' in mk and 'quotaInfo' in mv:
+                    qinfo = mv['quotaInfo']
+                    if 'remainingFraction' in qinfo:
+                        hourly_frac = qinfo['remainingFraction']
+                        hourly_reset = format_countdown(qinfo.get('resetTime'))
+                        break
+        
+        h_str = f'{hourly_frac*100:.1f}%'
+        if hourly_reset:
+            h_str += f' ({hourly_reset})'
+        
+        w_str = f'{weekly_frac*100:.1f}%'
+        if weekly_reset:
+            w_str += f' ({weekly_reset})'
+        
+        status_colored = '\033[32mActive\033[0m'
+        if hourly_frac < 0.1 or weekly_frac < 0.1:
+            status_colored = '\033[31mExhausted\033[0m'
+        elif hourly_frac < 0.3 or weekly_frac < 0.3:
+            status_colored = '\033[33mLow Quota\033[0m'
+            
+        return {
+            'instance': inst_name,
+            'email': email,
+            'status': status_colored,
+            'hourly_str': h_str,
+            'weekly_str': w_str,
+            'fraction': hourly_frac,
+            'is_active': True
+        }
+    except Exception:
+        return {
+            'instance': inst_name,
+            'email': email if 'email' in locals() else '-',
+            'status': '\033[31mOffline\033[0m',
+            'hourly_str': '-',
+            'weekly_str': '-',
+            'fraction': None,
+            'is_active': False
+        }
+
+if not os.path.isdir(base_dir):
+    print("No agy instances found. Run 'agy1', 'agy2', etc. to create one.")
+    sys.exit(0)
+
+dirs = sorted([os.path.join(base_dir, d) for d in os.listdir(base_dir) if re.match(r'^agy[0-9]+$', d)],
+              key=lambda p: int(re.search(r'\d+', os.path.basename(p)).group()))
+
+if not dirs:
+    print("No agy instances found. Run 'agy1', 'agy2', etc. to create one.")
+    sys.exit(0)
+
+with concurrent.futures.ThreadPoolExecutor(max_workers=8) as ex:
+    rows = list(ex.map(fetch_inst, dirs))
+
+headers = ['INSTANCE', 'ACCOUNT / EMAIL', 'STATUS', 'HOURLY REMAINING', 'WEEKLY REMAINING', 'HOURLY QUOTA BAR']
+widths = [10, 30, 14, 18, 18, 20]
+
+total_w = sum(widths) + len(widths) * 3 - 1
+sep_line = '=' * total_w
+div_line = '-' * total_w
+
+print(sep_line)
+print(pad_str('AGY Multi-Instance Collective Quota & Usage', total_w, 'center'))
+print(sep_line)
+print(' | '.join(pad_str(h, w) for h, w in zip(headers, widths)))
+print(div_line)
+
+for r in rows:
+    bar = make_bar(r['fraction'], width=10)
+    vals = [
+        r['instance'],
+        r['email'],
+        r['status'],
+        r['hourly_str'],
+        r['weekly_str'],
+        bar
+    ]
+    print(' | '.join(pad_str(v, w) for v, w in zip(vals, widths)))
+
+print(sep_line)
+active_count = sum(1 for r in rows if r['is_active'])
+print(f'Total Instances: {len(rows)}  |  Active Accounts: {active_count}  |  Logged Out: {len(rows) - active_count}')
+print(sep_line)
+PY_EOF
+}
+
 delete_instance() {
     local inst_id="$1"
     local inst_dir="$INSTANCES_BASE_DIR/agy${inst_id}"
@@ -187,6 +441,9 @@ delete_instance() {
 case "$1" in
     -l|--list|list)
         list_instances
+        ;;
+    -u|--usage|-usage|usage)
+        show_usage
         ;;
     -r|--run)
         shift
