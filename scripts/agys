@@ -326,20 +326,33 @@ def fetch_inst(inst_path):
             for g in q_summary.get('groups', []):
                 for b in g.get('buckets', []):
                     if b.get('window') == 'weekly':
-                        weekly_frac = b.get('remainingFraction', 1.0)
-                        weekly_reset = format_countdown(b.get('resetTime'))
-                        break
+                        f = b.get('remainingFraction', 1.0)
+                        if f < weekly_frac:
+                            weekly_frac = f
+                            weekly_reset = format_countdown(b.get('resetTime'))
+                        elif not weekly_reset and b.get('resetTime'):
+                            weekly_reset = format_countdown(b.get('resetTime'))
         
         hourly_frac = 1.0
         hourly_reset = ''
         if models_res:
-            for mk, mv in models_res.get('models', {}).items():
-                if 'flash' in mk and 'quotaInfo' in mv:
-                    qinfo = mv['quotaInfo']
-                    if 'remainingFraction' in qinfo:
-                        hourly_frac = qinfo['remainingFraction']
-                        hourly_reset = format_countdown(qinfo.get('resetTime'))
+            models_dict = models_res.get('models', {})
+            target_keys = ['gemini-3-flash-agent', 'gemini-3.5-flash-lite', 'gemini-3-flash', 'gemini-2.5-flash', 'gemini-2.5-pro']
+            chosen_key = None
+            for tk in target_keys:
+                if tk in models_dict and 'quotaInfo' in models_dict[tk]:
+                    chosen_key = tk
+                    break
+            if not chosen_key:
+                for mk, mv in models_dict.items():
+                    if mk.startswith('gemini-') and ('flash' in mk or 'pro' in mk) and 'quotaInfo' in mv:
+                        chosen_key = mk
                         break
+            if chosen_key:
+                qinfo = models_dict[chosen_key]['quotaInfo']
+                if 'remainingFraction' in qinfo:
+                    hourly_frac = qinfo['remainingFraction']
+                    hourly_reset = format_countdown(qinfo.get('resetTime'))
         
         status_colored = '\033[32mActive\033[0m'
         if hourly_frac < 0.1 or weekly_frac < 0.1:
