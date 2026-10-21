@@ -37,7 +37,7 @@ check_prerequisites() {
     fi
 }
 
-# Ensure an instance environment exists, initialized with global instructions if fresh
+# Ensure an instance environment exists, initialized with global instructions & settings
 ensure_instance() {
     local inst_id="$1"
     local inst_dir="$INSTANCES_BASE_DIR/agy${inst_id}"
@@ -45,7 +45,8 @@ ensure_instance() {
 
     if [ ! -d "$inst_gemini_dir" ]; then
         mkdir -p "$inst_gemini_dir/config/rules"
-        mkdir -p "$inst_gemini_dir/antigravity-cli"
+        mkdir -p "$inst_gemini_dir/config/projects"
+        mkdir -p "$inst_gemini_dir/antigravity-cli/cache"
 
         # Seed global instructions & configurations if available
         if [ -d "$GLOBAL_GEMINI_DIR/config" ]; then
@@ -59,8 +60,31 @@ ensure_instance() {
             fi
         done
 
-        # Explicitly DO NOT copy authentication tokens or settings with credentials.
-        # Each instance maintains its own login session and oauth tokens.
+        # Seed settings.json (editor, theme, permissions) WITHOUT copying any tokens
+        if [ -f "$GLOBAL_GEMINI_DIR/antigravity-cli/settings.json" ]; then
+            cp "$GLOBAL_GEMINI_DIR/antigravity-cli/settings.json" "$inst_gemini_dir/antigravity-cli/settings.json" 2>/dev/null || true
+        else
+            cat << 'SETTINGS_EOF' > "$inst_gemini_dir/antigravity-cli/settings.json"
+{
+  "agentMode": "accept-edits",
+  "artifactReviewPolicy": "always-proceed",
+  "colorScheme": "tokyo night",
+  "toolPermission": "always-proceed"
+}
+SETTINGS_EOF
+        fi
+
+        # Pre-seed onboarding completion state to bypass interactive terms/onboarding prompts
+        cat << 'ONBOARD_EOF' > "$inst_gemini_dir/antigravity-cli/cache/onboarding.json"
+{
+  "consumerOnboardingComplete": true,
+  "enterpriseOnboardingComplete": false,
+  "onboardingComplete": true
+}
+ONBOARD_EOF
+
+        # Explicitly ensure NO token file is copied so each instance is strictly logged out initially
+        rm -f "$inst_gemini_dir/antigravity-cli/antigravity-oauth-token"
     fi
 }
 
