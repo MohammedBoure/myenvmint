@@ -323,21 +323,33 @@ def fetch_inst(inst_path):
         weekly_frac = 1.0
         weekly_reset = ''
         if q_summary:
+            # Check for Gemini-specific group first if present
+            found_gemini = False
             for g in q_summary.get('groups', []):
-                for b in g.get('buckets', []):
-                    if b.get('window') == 'weekly':
-                        f = b.get('remainingFraction', 1.0)
-                        if f < weekly_frac:
-                            weekly_frac = f
+                if 'gemini' in g.get('displayName', '').lower():
+                    for b in g.get('buckets', []):
+                        if b.get('window') == 'weekly':
+                            weekly_frac = b.get('remainingFraction', 1.0)
                             weekly_reset = format_countdown(b.get('resetTime'))
-                        elif not weekly_reset and b.get('resetTime'):
-                            weekly_reset = format_countdown(b.get('resetTime'))
+                            found_gemini = True
+                            break
+            # Otherwise parse all weekly buckets
+            if not found_gemini:
+                for g in q_summary.get('groups', []):
+                    for b in g.get('buckets', []):
+                        if b.get('window') == 'weekly':
+                            f = b.get('remainingFraction', 1.0)
+                            if f < weekly_frac:
+                                weekly_frac = f
+                                weekly_reset = format_countdown(b.get('resetTime'))
+                            elif not weekly_reset and b.get('resetTime'):
+                                weekly_reset = format_countdown(b.get('resetTime'))
         
-        hourly_frac = 1.0
-        hourly_reset = ''
+        five_hour_frac = 1.0
+        five_hour_reset = ''
         if models_res:
             models_dict = models_res.get('models', {})
-            target_keys = ['gemini-3-flash-agent', 'gemini-3.5-flash-lite', 'gemini-3-flash', 'gemini-2.5-flash', 'gemini-2.5-pro']
+            target_keys = ['gemini-3.8-flash-tiered', 'gemini-3-flash-agent', 'gemini-3.5-flash-lite', 'gemini-3-flash', 'gemini-2.5-flash', 'gemini-2.5-pro']
             chosen_key = None
             for tk in target_keys:
                 if tk in models_dict and 'quotaInfo' in models_dict[tk]:
@@ -351,20 +363,20 @@ def fetch_inst(inst_path):
             if chosen_key:
                 qinfo = models_dict[chosen_key]['quotaInfo']
                 if 'remainingFraction' in qinfo:
-                    hourly_frac = qinfo['remainingFraction']
-                    hourly_reset = format_countdown(qinfo.get('resetTime'))
+                    five_hour_frac = qinfo['remainingFraction']
+                    five_hour_reset = format_countdown(qinfo.get('resetTime'))
         
         status_colored = '\033[32mActive\033[0m'
-        if hourly_frac < 0.1 or weekly_frac < 0.1:
+        if five_hour_frac < 0.1 or weekly_frac < 0.1:
             status_colored = '\033[31mExhausted\033[0m'
-        elif hourly_frac < 0.3 or weekly_frac < 0.3:
+        elif five_hour_frac < 0.3 or weekly_frac < 0.3:
             status_colored = '\033[33mLow Quota\033[0m'
             
         return {
             'instance': inst_name,
             'email': email,
             'status': status_colored,
-            'hourly_cell': make_quota_cell(hourly_frac, hourly_reset),
+            'five_hour_cell': make_quota_cell(five_hour_frac, five_hour_reset),
             'weekly_cell': make_quota_cell(weekly_frac, weekly_reset),
             'is_active': True
         }
@@ -373,7 +385,7 @@ def fetch_inst(inst_path):
             'instance': inst_name,
             'email': email if 'email' in locals() else '-',
             'status': '\033[31mOffline\033[0m',
-            'hourly_cell': make_quota_cell(None, ''),
+            'five_hour_cell': make_quota_cell(None, ''),
             'weekly_cell': make_quota_cell(None, ''),
             'is_active': False
         }
@@ -392,7 +404,7 @@ if not dirs:
 with concurrent.futures.ThreadPoolExecutor(max_workers=8) as ex:
     rows = list(ex.map(fetch_inst, dirs))
 
-headers = ['INSTANCE', 'ACCOUNT / EMAIL', 'STATUS', 'HOURLY QUOTA (BAR)', 'WEEKLY QUOTA (BAR)']
+headers = ['INSTANCE', 'ACCOUNT / EMAIL', 'STATUS', '5-HOUR LIMIT (BAR)', 'WEEKLY LIMIT (BAR)']
 widths = [10, 28, 12, 30, 30]
 
 total_w = sum(widths) + (len(widths) - 1) * 3
@@ -410,7 +422,7 @@ for r in rows:
         r['instance'],
         r['email'],
         r['status'],
-        r['hourly_cell'],
+        r['five_hour_cell'],
         r['weekly_cell']
     ]
     print(' | '.join(pad_str(v, w) for v, w in zip(vals, widths)))
