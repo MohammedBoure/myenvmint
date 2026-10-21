@@ -59,10 +59,8 @@ ensure_instance() {
             fi
         done
 
-        # Seed global settings.json if present
-        if [ -f "$GLOBAL_GEMINI_DIR/antigravity-cli/settings.json" ]; then
-            cp "$GLOBAL_GEMINI_DIR/antigravity-cli/settings.json" "$inst_gemini_dir/antigravity-cli/settings.json" 2>/dev/null || true
-        fi
+        # Explicitly DO NOT copy authentication tokens or settings with credentials
+        # Each instance maintains its own login session and oauth tokens
     fi
 }
 
@@ -74,8 +72,9 @@ run_instance() {
     check_prerequisites
     ensure_instance "$inst_id"
 
-    # Execute agy isolated with its own ~/.gemini
-    exec bwrap \
+    # Unset DBUS_SESSION_BUS_ADDRESS to isolate system keyring / secrets storage,
+    # ensuring agy saves the login token strictly to each instance's ~/.gemini file storage.
+    exec env -u DBUS_SESSION_BUS_ADDRESS bwrap \
         --dev-bind / / \
         --bind "$inst_gemini_dir" "$HOME/.gemini" \
         agy "$@"
