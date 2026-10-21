@@ -263,20 +263,21 @@ def scrape_headless_tui(inst_gemini_dir):
         p = subprocess.Popen(cmd, stdin=slave, stdout=slave, stderr=slave, close_fds=True, env=env)
         os.close(slave)
 
-        ready = False
         startup_buf = b''
-        while time.time() - t0 < 5.0:
-            r, _, _ = select.select([master], [], [], 0.2)
-            if r:
+        for _ in range(40):
+            time.sleep(0.12)
+            while select.select([master], [], [], 0.05)[0]:
                 startup_buf += os.read(master, 4096)
-                if b'shortcuts' in startup_buf or b'-- INSERT --' in startup_buf or b'>' in startup_buf:
-                    ready = True
-                    break
+            if b'Flash' in startup_buf or b'shortcuts' in startup_buf or b'>' in startup_buf:
+                break
 
-        time.sleep(0.3)
-        # Dismiss any initial banner or toast
+        # Dismiss any welcome tips, verbosity modals or toasts
         os.write(master, b'\x1b')
-        time.sleep(0.2)
+        time.sleep(0.15)
+        os.write(master, b'\x1b')
+        time.sleep(0.15)
+
+        # Clear incoming buffer completely
         while select.select([master], [], [], 0.05)[0]:
             os.read(master, 4096)
 
@@ -284,8 +285,8 @@ def scrape_headless_tui(inst_gemini_dir):
         os.write(master, b'/usage\r')
 
         buf = b''
-        for _ in range(35):
-            time.sleep(0.15)
+        for _ in range(40):
+            time.sleep(0.12)
             while select.select([master], [], [], 0.05)[0]:
                 buf += os.read(master, 4096)
             if b'Weekly Limit Remaining' in buf:
