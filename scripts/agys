@@ -224,9 +224,9 @@ def pad_str(s, width, align='left'):
         return ' ' * left + s + ' ' * right
     return s + ' ' * pad
 
-def make_bar(fraction, width=10):
+def make_quota_cell(fraction, reset_str, width=10):
     if fraction is None:
-        return '\033[90m[' + '─' * width + ']   -  \033[0m'
+        return '\033[90m[' + '─' * width + ']      -       \033[0m'
     pct = max(0.0, min(1.0, float(fraction))) * 100
     filled = int(round(width * (pct / 100.0)))
     empty = width - filled
@@ -239,7 +239,10 @@ def make_bar(fraction, width=10):
         color = '\033[38;5;196m'  # red
     
     bar_str = '█' * filled + '░' * empty
-    return f'{color}[{bar_str}] {pct:5.1f}%\033[0m'
+    base = f'{color}[{bar_str}] {pct:5.1f}%\033[0m'
+    if reset_str:
+        base += f' \033[90m({reset_str})\033[0m'
+    return base
 
 def fetch_inst(inst_path):
     inst_name = os.path.basename(inst_path)
@@ -250,9 +253,8 @@ def fetch_inst(inst_path):
             'instance': inst_name,
             'email': '-',
             'status': '\033[90mLogged Out\033[0m',
-            'hourly_str': '-',
-            'weekly_str': '-',
-            'fraction': None,
+            'hourly_cell': make_quota_cell(None, ''),
+            'weekly_cell': make_quota_cell(None, ''),
             'is_active': False
         }
     
@@ -288,7 +290,7 @@ def fetch_inst(inst_path):
             q_summary = call_api('retrieveUserQuotaSummary', access_token)
             models_res = call_api('fetchAvailableModels', access_token)
         except Exception:
-            if refresh_token:
+            if refresh_token and CLIENT_ID and CLIENT_SECRET:
                 r_req = urllib.request.Request(
                     'https://oauth2.googleapis.com/token',
                     data=urllib.parse.urlencode({
@@ -313,9 +315,8 @@ def fetch_inst(inst_path):
                     'instance': inst_name,
                     'email': email,
                     'status': '\033[33mAuth Expired\033[0m',
-                    'hourly_str': '-',
-                    'weekly_str': '-',
-                    'fraction': None,
+                    'hourly_cell': make_quota_cell(None, ''),
+                    'weekly_cell': make_quota_cell(None, ''),
                     'is_active': False
                 }
         
@@ -340,14 +341,6 @@ def fetch_inst(inst_path):
                         hourly_reset = format_countdown(qinfo.get('resetTime'))
                         break
         
-        h_str = f'{hourly_frac*100:.1f}%'
-        if hourly_reset:
-            h_str += f' ({hourly_reset})'
-        
-        w_str = f'{weekly_frac*100:.1f}%'
-        if weekly_reset:
-            w_str += f' ({weekly_reset})'
-        
         status_colored = '\033[32mActive\033[0m'
         if hourly_frac < 0.1 or weekly_frac < 0.1:
             status_colored = '\033[31mExhausted\033[0m'
@@ -358,9 +351,8 @@ def fetch_inst(inst_path):
             'instance': inst_name,
             'email': email,
             'status': status_colored,
-            'hourly_str': h_str,
-            'weekly_str': w_str,
-            'fraction': hourly_frac,
+            'hourly_cell': make_quota_cell(hourly_frac, hourly_reset),
+            'weekly_cell': make_quota_cell(weekly_frac, weekly_reset),
             'is_active': True
         }
     except Exception:
@@ -368,9 +360,8 @@ def fetch_inst(inst_path):
             'instance': inst_name,
             'email': email if 'email' in locals() else '-',
             'status': '\033[31mOffline\033[0m',
-            'hourly_str': '-',
-            'weekly_str': '-',
-            'fraction': None,
+            'hourly_cell': make_quota_cell(None, ''),
+            'weekly_cell': make_quota_cell(None, ''),
             'is_active': False
         }
 
@@ -388,10 +379,10 @@ if not dirs:
 with concurrent.futures.ThreadPoolExecutor(max_workers=8) as ex:
     rows = list(ex.map(fetch_inst, dirs))
 
-headers = ['INSTANCE', 'ACCOUNT / EMAIL', 'STATUS', 'HOURLY REMAINING', 'WEEKLY REMAINING', 'HOURLY QUOTA BAR']
-widths = [10, 30, 14, 18, 18, 20]
+headers = ['INSTANCE', 'ACCOUNT / EMAIL', 'STATUS', 'HOURLY QUOTA (BAR)', 'WEEKLY QUOTA (BAR)']
+widths = [10, 28, 12, 30, 30]
 
-total_w = sum(widths) + len(widths) * 3 - 1
+total_w = sum(widths) + (len(widths) - 1) * 3
 sep_line = '=' * total_w
 div_line = '-' * total_w
 
@@ -402,14 +393,12 @@ print(' | '.join(pad_str(h, w) for h, w in zip(headers, widths)))
 print(div_line)
 
 for r in rows:
-    bar = make_bar(r['fraction'], width=10)
     vals = [
         r['instance'],
         r['email'],
         r['status'],
-        r['hourly_str'],
-        r['weekly_str'],
-        bar
+        r['hourly_cell'],
+        r['weekly_cell']
     ]
     print(' | '.join(pad_str(v, w) for v, w in zip(vals, widths)))
 
