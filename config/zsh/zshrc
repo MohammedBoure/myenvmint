@@ -282,3 +282,19 @@ if command -v zellij >/dev/null 2>&1; then
 fi
 
 
+
+# ------------------------------------------------------------------------------
+# AGY Multi-Instance Dynamic Dispatcher (agy1, agy2, ... agyN)
+# ------------------------------------------------------------------------------
+command_not_found_handler() {
+    if [[ "$1" =~ ^agy[0-9]+$ ]]; then
+        agys "$@"
+        return $?
+    fi
+    if [[ -x /usr/lib/command-not-found ]]; then
+        /usr/lib/command-not-found -- "$@"
+        return $?
+    fi
+    print -u2 "zsh: command not found: $1"
+    return 127
+}

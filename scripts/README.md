@@ -32,4 +32,8 @@ This directory contains the core management, deployment, and orchestration shell
 - **`zellij`**:
   Smart binary wrapper installed to `~/.local/bin/zellij` managing the underlying `zellij-bin` executable. Prevents unwanted session creation upon startup, supports intuitive `new`/`create` subcommands (`zellij new <name>`), automatically attaches to single active sessions, opens SessionX when multiple sessions exist, and prompts for explicit confirmation before creating a session when none exist.
 
+- **`agys`**:
+  Multi-instance orchestrator and manager for the Antigravity CLI (`agy`). Installed to `~/.local/bin/agys`, it dynamically manages independent, fully isolated environments (`~/.gemini`) for arbitrary instances (`agy1`, `agy2`, ..., `agyN`) using Bubblewrap (`bwrap`) filesystem sandboxing. Provides commands to list active instances (`agys -l`), run explicit instances (`agys -r <N>`), or delete instances (`agys -d <N>`). Fresh instances automatically inherit global instructions (`GEMINI.md`, `AGENTS.md`) while maintaining separate sessions, credentials, and conversation histories.
+
+
 

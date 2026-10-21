@@ -18,7 +18,7 @@ echo "==> Step 1: Installing system packages via apt..."
 sudo apt-get update
 sudo apt-get install -y \
     sxhkd wmctrl xdotool jq polybar picom xcape vnstat \
-    zsh git curl fzf ranger barrier moonlight-qt \
+    zsh git curl fzf ranger barrier moonlight-qt bubblewrap \
     fonts-jetbrains-mono fonts-firacode fonts-font-awesome papirus-icon-theme
 
 # 2. Enable vnstat daemon for daily traffic calculation
@@ -63,6 +63,8 @@ if ! command -v zellij-bin >/dev/null 2>&1; then
 fi
 cp "$SCRIPT_DIR/scripts/zellij" "$HOME/.local/bin/zellij" 2>/dev/null || true
 chmod +x "$HOME/.local/bin/zellij" 2>/dev/null || true
+cp "$SCRIPT_DIR/scripts/agys" "$HOME/.local/bin/agys" 2>/dev/null || true
+chmod +x "$HOME/.local/bin/agys" 2>/dev/null || true
 
 
 # 6. Clone Zsh plugins if missing

@@ -1,0 +1,184 @@
+#!/usr/bin/env bash
+# ==============================================================================
+# agys - Multi-Instance Antigravity CLI (agy) Orchestrator & Manager
+# Manages independent ~/.gemini configuration environments for agy instances (agy1, agy2, ...).
+# ==============================================================================
+
+set -e
+
+INSTANCES_BASE_DIR="${AGY_INSTANCES_DIR:-$HOME/.local/share/agy-instances}"
+GLOBAL_GEMINI_DIR="$HOME/.gemini"
+
+show_help() {
+    cat << 'EOF_HELP'
+agys - Antigravity Multi-Instance CLI Manager
+
+Usage:
+  agys -l | --list             List all existing agy instances and their statuses
+  agys -r | --run <N> [args..] Run instance agy<N> with optional arguments
+  agys -d | --delete <N>       Delete an instance and its isolated environment
+  agys -h | --help             Show this help message
+
+Dynamic Command Syntax:
+  agy1, agy2, agy3, ... agyN   Directly invokes instance N (created automatically on first use)
+EOF_HELP
+}
+
+# Ensure bubblewrap is available for namespace filesystem isolation
+check_prerequisites() {
+    if ! command -v bwrap >/dev/null 2>&1; then
+        echo "Error: 'bwrap' (bubblewrap) is required for instance isolation." >&2
+        echo "Please install it using: sudo apt-get install -y bubblewrap" >&2
+        exit 1
+    fi
+    if ! command -v agy >/dev/null 2>&1 && [ ! -x "$HOME/.local/bin/agy" ]; then
+        echo "Error: 'agy' binary not found in PATH or ~/.local/bin/agy." >&2
+        exit 1
+    fi
+}
+
+# Ensure an instance environment exists, initialized with global instructions if fresh
+ensure_instance() {
+    local inst_id="$1"
+    local inst_dir="$INSTANCES_BASE_DIR/agy${inst_id}"
+    local inst_gemini_dir="$inst_dir/.gemini"
+
+    if [ ! -d "$inst_gemini_dir" ]; then
+        mkdir -p "$inst_gemini_dir/config/rules"
+        mkdir -p "$inst_gemini_dir/antigravity-cli"
+
+        # Seed global instructions & configurations if available
+        if [ -d "$GLOBAL_GEMINI_DIR/config" ]; then
+            cp -r "$GLOBAL_GEMINI_DIR/config/"* "$inst_gemini_dir/config/" 2>/dev/null || true
+        fi
+
+        # Seed GEMINI.md / AGENTS.md if present
+        for f in GEMINI.md AGENTS.md; do
+            if [ -f "$GLOBAL_GEMINI_DIR/$f" ]; then
+                cp "$GLOBAL_GEMINI_DIR/$f" "$inst_gemini_dir/$f" 2>/dev/null || true
+            fi
+        done
+
+        # Seed global settings.json if present
+        if [ -f "$GLOBAL_GEMINI_DIR/antigravity-cli/settings.json" ]; then
+            cp "$GLOBAL_GEMINI_DIR/antigravity-cli/settings.json" "$inst_gemini_dir/antigravity-cli/settings.json" 2>/dev/null || true
+        fi
+    fi
+}
+
+run_instance() {
+    local inst_id="$1"
+    shift
+    local inst_gemini_dir="$INSTANCES_BASE_DIR/agy${inst_id}/.gemini"
+
+    check_prerequisites
+    ensure_instance "$inst_id"
+
+    # Execute agy isolated with its own ~/.gemini
+    exec bwrap \
+        --dev-bind / / \
+        --bind "$inst_gemini_dir" "$HOME/.gemini" \
+        agy "$@"
+}
+
+list_instances() {
+    echo "=================================================================="
+    echo "                 AGY Multi-Instance Registry                      "
+    echo "=================================================================="
+    printf "%-10s | %-12s | %-10s | %s\n" "INSTANCE" "AUTH STATUS" "STORAGE" "LOCATION"
+    echo "------------------------------------------------------------------"
+
+    if [ ! -d "$INSTANCES_BASE_DIR" ] || [ -z "$(ls -A "$INSTANCES_BASE_DIR" 2>/dev/null)" ]; then
+        echo "No agy instances found. Run 'agy1', 'agy2', etc. to create one."
+        echo "=================================================================="
+        return 0
+    fi
+
+    local ids
+    ids=$(find "$INSTANCES_BASE_DIR" -mindepth 1 -maxdepth 1 -type d -name "agy[0-9]*" 2>/dev/null | sed 's/.*\/agy//' | sort -n)
+
+    if [ -z "$ids" ]; then
+        echo "No agy instances found. Run 'agy1', 'agy2', etc. to create one."
+        echo "=================================================================="
+        return 0
+    fi
+
+    for id in $ids; do
+        local dir="$INSTANCES_BASE_DIR/agy${id}"
+        local name="agy${id}"
+        local gemini_dir="$dir/.gemini"
+        local auth_status="Logged Out"
+
+        if [ -f "$gemini_dir/antigravity-cli/antigravity-oauth-token" ]; then
+            auth_status="Logged In"
+        elif [ -f "$gemini_dir/antigravity-cli/settings.json" ]; then
+            auth_status="Configured"
+        fi
+
+        local disk_size
+        disk_size=$(du -sh "$dir" 2>/dev/null | cut -f1)
+        printf "%-10s | %-12s | %-10s | %s\n" "$name" "$auth_status" "$disk_size" "$dir"
+    done
+    echo "=================================================================="
+}
+
+delete_instance() {
+    local inst_id="$1"
+    local inst_dir="$INSTANCES_BASE_DIR/agy${inst_id}"
+    if [ ! -d "$inst_dir" ]; then
+        echo "Instance agy${inst_id} does not exist."
+        return 1
+    fi
+    printf "Are you sure you want to delete agy%s (%s)? [y/N]: " "$inst_id" "$inst_dir"
+    read -r confirm
+    if [[ "$confirm" =~ ^[Yy]$ ]]; then
+        rm -rf "$inst_dir"
+        echo "Instance agy${inst_id} deleted successfully."
+    else
+        echo "Aborted."
+    fi
+}
+
+# Main command dispatcher
+case "$1" in
+    -l|--list|list)
+        list_instances
+        ;;
+    -r|--run)
+        shift
+        if [ -z "$1" ]; then
+            echo "Error: Instance number required. Example: agys -r 1" >&2
+            exit 1
+        fi
+        inst_num="$1"
+        shift
+        run_instance "$inst_num" "$@"
+        ;;
+    -d|--delete)
+        shift
+        if [ -z "$1" ]; then
+            echo "Error: Instance number required. Example: agys -d 1" >&2
+            exit 1
+        fi
+        delete_instance "$1"
+        ;;
+    -h|--help|help)
+        show_help
+        ;;
+    agy[0-9]*)
+        cmd="$1"
+        shift
+        num="${cmd#agy}"
+        run_instance "$num" "$@"
+        ;;
+    *)
+        if [[ "$1" =~ ^[0-9]+$ ]]; then
+            num="$1"
+            shift
+            run_instance "$num" "$@"
+        else
+            show_help
+            exit 1
+        fi
+        ;;
+esac
