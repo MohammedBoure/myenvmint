@@ -9,14 +9,61 @@ set -e
 INSTANCES_BASE_DIR="${AGY_INSTANCES_DIR:-$HOME/.local/share/agy-instances}"
 GLOBAL_GEMINI_DIR="$HOME/.gemini"
 
+# Helper: Determine deterministic role based on instance ID
+get_instance_role() {
+    local inst_id="$1"
+    if [ "$inst_id" -ge 1 ] && [ "$inst_id" -le 10 ]; then
+        echo "orchestrator"
+    elif [ "$inst_id" -ge 11 ] && [ "$inst_id" -le 50 ]; then
+        echo "backend"
+    elif [ "$inst_id" -ge 51 ] && [ "$inst_id" -le 100 ]; then
+        echo "frontend"
+    elif [ "$inst_id" -ge 101 ] && [ "$inst_id" -le 150 ]; then
+        echo "test"
+    elif [ "$inst_id" -ge 151 ] && [ "$inst_id" -le 200 ]; then
+        echo "ux"
+    else
+        echo "orchestrator"
+    fi
+}
+
+get_role_title() {
+    local role="$1"
+    case "$role" in
+        orchestrator) echo "Lead Orchestrator / Project Manager" ;;
+        backend)      echo "Backend Logic & Systems Engineer" ;;
+        frontend)     echo "Frontend & Interface Auditor" ;;
+        test)         echo "Quality Gatekeeper & Pragmatic Test Engineer" ;;
+        ux)           echo "UX Finishing, Polish & Performance Specialist" ;;
+        *)            echo "Autonomous Agent" ;;
+    esac
+}
+
+find_role_template() {
+    local role="$1"
+    local candidates=(
+        "$GLOBAL_GEMINI_DIR/roles/${role}.md"
+        "$HOME/Desktop/myenvmint/config/antigravity/roles/${role}.md"
+        "/home/pluto/.gemini/roles/${role}.md"
+    )
+    for c in "${candidates[@]}"; do
+        if [ -f "$c" ]; then
+            echo "$c"
+            return 0
+        fi
+    done
+    return 1
+}
+
 show_help() {
     cat << 'EOF_HELP'
 agys - Antigravity Multi-Instance CLI Manager
 
 Usage:
-  agys -l | --list             List all existing agy instances and their statuses
+  agys -l | --list             List all existing agy instances, roles, and statuses
   agys -u | --usage | -usage   Show collective quota and usage limits table for all accounts
   agys -r | --run <N> [args..] Run instance agy<N> with optional arguments
+  agys -s | --sync [N]         Synchronize and repair rules/symlinks for instances (or agy<N>)
   agys -d | --delete <N>       Delete an instance and its isolated environment
   agys -h | --help             Show this help message
 
@@ -38,30 +85,51 @@ check_prerequisites() {
     fi
 }
 
-# Ensure an instance environment exists, initialized with global instructions & settings
+# Ensure an instance environment exists, initialized with role instructions & settings
 ensure_instance() {
     local inst_id="$1"
     local inst_dir="$INSTANCES_BASE_DIR/agy${inst_id}"
     local inst_gemini_dir="$inst_dir/.gemini"
+    local role
+    role=$(get_instance_role "$inst_id")
+    local role_title
+    role_title=$(get_role_title "$role")
 
-    if [ ! -d "$inst_gemini_dir" ]; then
-        mkdir -p "$inst_gemini_dir/config/rules"
-        mkdir -p "$inst_gemini_dir/config/projects"
-        mkdir -p "$inst_gemini_dir/antigravity-cli/cache"
+    mkdir -p "$inst_gemini_dir/config/rules"
+    mkdir -p "$inst_gemini_dir/config/projects"
+    mkdir -p "$inst_gemini_dir/antigravity-cli/cache"
 
-        # Seed global instructions & configurations if available
-        if [ -d "$GLOBAL_GEMINI_DIR/config" ]; then
-            cp -r "$GLOBAL_GEMINI_DIR/config/"* "$inst_gemini_dir/config/" 2>/dev/null || true
+    # Seed GEMINI.md if not already present
+    if [ ! -f "$inst_gemini_dir/GEMINI.md" ]; then
+        local tpl
+        tpl=$(find_role_template "$role" || true)
+        if [ -n "$tpl" ] && [ -f "$tpl" ]; then
+            # Seed from template, customizing placeholder [x] with inst_id
+            sed "s/\[x\]/${inst_id}/g" "$tpl" > "$inst_gemini_dir/GEMINI.md"
+        elif [ -f "$GLOBAL_GEMINI_DIR/GEMINI.md" ]; then
+            cp "$GLOBAL_GEMINI_DIR/GEMINI.md" "$inst_gemini_dir/GEMINI.md"
+        else
+            cat << 'DEFAULT_EOF' > "$inst_gemini_dir/GEMINI.md"
+# Global Instructions & Guidelines for AI
+> Active instance recommendations.
+DEFAULT_EOF
         fi
+    fi
 
-        # Seed GEMINI.md / AGENTS.md if present
-        for f in GEMINI.md AGENTS.md; do
-            if [ -f "$GLOBAL_GEMINI_DIR/$f" ]; then
-                cp "$GLOBAL_GEMINI_DIR/$f" "$inst_gemini_dir/$f" 2>/dev/null || true
-            fi
-        done
+    # Synchronize all aliases/symlinks for universal rule ingestion
+    # Ensures both GEMINI.md, .GEMINI.md, AGENTS.md, .AGENTS.md exist and point to the same content
+    ln -sf "GEMINI.md" "$inst_gemini_dir/.GEMINI.md"
+    ln -sf "GEMINI.md" "$inst_gemini_dir/AGENTS.md"
+    ln -sf "GEMINI.md" "$inst_gemini_dir/.AGENTS.md"
 
-        # Seed settings.json (editor, theme, permissions) WITHOUT copying any tokens
+    # Clean conflicting/stale global-rules.md that pollutes user_global
+    rm -f "$inst_gemini_dir/config/rules/global-rules.md"
+    ln -sf "../../GEMINI.md" "$inst_gemini_dir/config/rules/role-rules.md"
+    ln -sf "../GEMINI.md" "$inst_gemini_dir/config/GEMINI.md"
+    ln -sf "../GEMINI.md" "$inst_gemini_dir/config/AGENTS.md"
+
+    # Seed settings.json (editor, theme, permissions) WITHOUT copying any tokens
+    if [ ! -f "$inst_gemini_dir/antigravity-cli/settings.json" ]; then
         if [ -f "$GLOBAL_GEMINI_DIR/antigravity-cli/settings.json" ]; then
             cp "$GLOBAL_GEMINI_DIR/antigravity-cli/settings.json" "$inst_gemini_dir/antigravity-cli/settings.json" 2>/dev/null || true
         else
@@ -74,8 +142,10 @@ ensure_instance() {
 }
 SETTINGS_EOF
         fi
+    fi
 
-        # Pre-seed onboarding completion state to bypass interactive terms/onboarding prompts
+    # Pre-seed onboarding completion state to bypass interactive terms/onboarding prompts
+    if [ ! -f "$inst_gemini_dir/antigravity-cli/cache/onboarding.json" ]; then
         cat << 'ONBOARD_EOF' > "$inst_gemini_dir/antigravity-cli/cache/onboarding.json"
 {
   "consumerOnboardingComplete": true,
@@ -83,8 +153,10 @@ SETTINGS_EOF
   "onboardingComplete": true
 }
 ONBOARD_EOF
+    fi
 
-        # Explicitly ensure NO token file is copied so each instance is strictly logged out initially
+    # Explicitly ensure NO token file is copied so fresh instances are strictly logged out initially
+    if [ ! -d "$inst_dir" ]; then
         rm -f "$inst_gemini_dir/antigravity-cli/antigravity-oauth-token"
     fi
 }
@@ -92,32 +164,86 @@ ONBOARD_EOF
 run_instance() {
     local inst_id="$1"
     shift
-    local inst_gemini_dir="$INSTANCES_BASE_DIR/agy${inst_id}/.gemini"
+    local inst_dir="$INSTANCES_BASE_DIR/agy${inst_id}"
+    local inst_gemini_dir="$inst_dir/.gemini"
+    local role
+    role=$(get_instance_role "$inst_id")
 
     check_prerequisites
     ensure_instance "$inst_id"
 
+    # Ensure a default model is explicitly set to prevent race conditions
+    # where agy starts with Model=None before async authentication finishes.
+    local needs_default_model=true
+    for arg in "$@"; do
+        if [ "$arg" = "--model" ] || [[ "$arg" =~ ^--model= ]]; then
+            needs_default_model=false
+            break
+        fi
+    done
+
+    # Subcommands and help should not have --model injected
+    case "$1" in
+        agent|agents|changelog|help|install|mcp|mic-serve|models|plugin|plugins|remote-control|update|-h|--help)
+            needs_default_model=false
+            ;;
+    esac
+
+    local model_args=()
+    if [ "$needs_default_model" = true ]; then
+        model_args=("--model" "gemini-3.8-flash-high")
+    fi
+
     # Isolate system keyring and D-Bus session bus completely.
-    # By masking /run/user with a tmpfs and unsetting DBUS_SESSION_BUS_ADDRESS,
-    # agy cannot access the shared desktop keyring service, forcing it to save
-    # and restore authentication tokens strictly within each instance's ~/.gemini folder.
+    # Pass instance identity environment variables into the container so agents/tools
+    # are immediately aware of their ID, role, and paths.
     exec env -u DBUS_SESSION_BUS_ADDRESS bwrap \
         --dev-bind / / \
         --tmpfs /run/user \
+        --setenv AGY_INSTANCE "$inst_id" \
+        --setenv AGY_INSTANCE_NAME "agy${inst_id}" \
+        --setenv AGY_ROLE "$role" \
+        --setenv AGY_INSTANCE_DIR "$inst_dir" \
+        --setenv AGY_GEMINI_DIR "$inst_gemini_dir" \
+        --setenv AGY_RULES_FILE "$inst_gemini_dir/GEMINI.md" \
         --bind "$inst_gemini_dir" "$HOME/.gemini" \
-        agy "$@"
+        agy "${model_args[@]}" "$@"
+}
+
+sync_instances() {
+    local target_id="$1"
+    if [ -n "$target_id" ]; then
+        echo "Synchronizing environment and rules for agy${target_id}..."
+        ensure_instance "$target_id"
+        echo "Done for agy${target_id}."
+        return 0
+    fi
+
+    echo "Synchronizing environment and rules for all instances in $INSTANCES_BASE_DIR..."
+    if [ -d "$INSTANCES_BASE_DIR" ]; then
+        for dir in "$INSTANCES_BASE_DIR"/agy[0-9]*; do
+            if [ -d "$dir" ]; then
+                local bname
+                bname=$(basename "$dir")
+                local num="${bname#agy}"
+                ensure_instance "$num"
+                echo "  ✓ Synchronized $bname ($(get_instance_role "$num"))"
+            fi
+        done
+    fi
+    echo "All instances synchronized successfully."
 }
 
 list_instances() {
-    echo "=========================================================================================="
-    echo "                              AGY Multi-Instance Registry                                 "
-    echo "=========================================================================================="
-    printf "%-10s | %-12s | %-28s | %-8s | %s\n" "INSTANCE" "AUTH STATUS" "ACCOUNT / EMAIL" "STORAGE" "LOCATION"
-    echo "------------------------------------------------------------------------------------------"
+    echo "=========================================================================================================="
+    echo "                                       AGY Multi-Instance Registry                                        "
+    echo "=========================================================================================================="
+    printf "%-10s | %-13s | %-12s | %-28s | %-8s | %s\n" "INSTANCE" "ROLE" "AUTH STATUS" "ACCOUNT / EMAIL" "STORAGE" "LOCATION"
+    echo "----------------------------------------------------------------------------------------------------------"
 
     if [ ! -d "$INSTANCES_BASE_DIR" ] || [ -z "$(ls -A "$INSTANCES_BASE_DIR" 2>/dev/null)" ]; then
         echo "No agy instances found. Run 'agy1', 'agy2', etc. to create one."
-        echo "=========================================================================================="
+        echo "=========================================================================================================="
         return 0
     fi
 
@@ -126,7 +252,7 @@ list_instances() {
 
     if [ -z "$ids" ]; then
         echo "No agy instances found. Run 'agy1', 'agy2', etc. to create one."
-        echo "=========================================================================================="
+        echo "=========================================================================================================="
         return 0
     fi
 
@@ -134,6 +260,8 @@ list_instances() {
         local dir="$INSTANCES_BASE_DIR/agy${id}"
         local name="agy${id}"
         local gemini_dir="$dir/.gemini"
+        local role
+        role=$(get_instance_role "$id")
         local auth_status="Logged Out"
         local email="-"
 
@@ -162,9 +290,9 @@ except Exception:
 
         local disk_size
         disk_size=$(du -sh "$dir" 2>/dev/null | cut -f1)
-        printf "%-10s | %-12s | %-28s | %-8s | %s\n" "$name" "$auth_status" "$email" "$disk_size" "$dir"
+        printf "%-10s | %-13s | %-12s | %-28s | %-8s | %s\n" "$name" "$role" "$auth_status" "$email" "$disk_size" "$dir"
     done
-    echo "=========================================================================================="
+    echo "=========================================================================================================="
 }
 
 show_usage() {
@@ -542,6 +670,14 @@ delete_instance() {
     fi
 }
 
+# Direct execution check: if invoked via symlink or binary named agy1, agy2, etc.
+cmd_name="$(basename "$0")"
+if [[ "$cmd_name" =~ ^agy[0-9]+$ ]]; then
+    inst_num="${cmd_name#agy}"
+    run_instance "$inst_num" "$@"
+    exit $?
+fi
+
 # Main command dispatcher
 case "$1" in
     -l|--list|list)
@@ -559,6 +695,10 @@ case "$1" in
         inst_num="$1"
         shift
         run_instance "$inst_num" "$@"
+        ;;
+    -s|--sync|sync)
+        shift
+        sync_instances "$1"
         ;;
     -d|--delete)
         shift

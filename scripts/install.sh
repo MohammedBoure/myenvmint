@@ -70,6 +70,9 @@ cp "$SCRIPT_DIR/scripts/zellij" "$HOME/.local/bin/zellij" 2>/dev/null || true
 chmod +x "$HOME/.local/bin/zellij" 2>/dev/null || true
 cp "$SCRIPT_DIR/scripts/agys" "$HOME/.local/bin/agys" 2>/dev/null || true
 chmod +x "$HOME/.local/bin/agys" 2>/dev/null || true
+for i in $(seq 1 200); do
+    ln -sf agys "$HOME/.local/bin/agy$i" 2>/dev/null || true
+done
 cp "$SCRIPT_DIR/scripts/sessionx" "$HOME/.local/bin/sessionx" 2>/dev/null || true
 chmod +x "$HOME/.local/bin/sessionx" 2>/dev/null || true
 cp "$SCRIPT_DIR/scripts/start" "$HOME/.local/bin/start" 2>/dev/null || true
@@ -177,14 +180,18 @@ cp -r "$SCRIPT_DIR/config/xfce4/xfconf/xfce-perchannel-xml/"* "$HOME/.config/xfc
 cp -r "$SCRIPT_DIR/config/xfce4/panel/"* "$HOME/.config/xfce4/panel/" 2>/dev/null || true
 cp -r "$SCRIPT_DIR/config/cinnamon/spices/"* "$HOME/.config/cinnamon/spices/" 2>/dev/null || true
 
-# Antigravity CLI & IDE Global Instructions & Settings
-mkdir -p "$HOME/.gemini/config/rules" "$HOME/.gemini/antigravity-cli"
+# Antigravity CLI & IDE Global Instructions, Roles & Settings
+mkdir -p "$HOME/.gemini/config/rules" "$HOME/.gemini/antigravity-cli" "$HOME/.gemini/roles"
+cp -r "$SCRIPT_DIR/config/antigravity/roles/"* "$HOME/.gemini/roles/" 2>/dev/null || true
 cp "$SCRIPT_DIR/config/antigravity/GEMINI.md" "$HOME/.gemini/config/GEMINI.md" 2>/dev/null || true
 cp "$SCRIPT_DIR/config/antigravity/AGENTS.md" "$HOME/.gemini/config/AGENTS.md" 2>/dev/null || true
 cp "$SCRIPT_DIR/config/antigravity/GEMINI.md" "$HOME/.gemini/GEMINI.md" 2>/dev/null || true
 cp "$SCRIPT_DIR/config/antigravity/AGENTS.md" "$HOME/.gemini/AGENTS.md" 2>/dev/null || true
 cp "$SCRIPT_DIR/config/antigravity/GEMINI.md" "$HOME/.gemini/config/rules/global-rules.md" 2>/dev/null || true
+ln -sf "GEMINI.md" "$HOME/.gemini/.GEMINI.md" 2>/dev/null || true
+ln -sf "AGENTS.md" "$HOME/.gemini/.AGENTS.md" 2>/dev/null || true
 [ -f "$HOME/.gemini/antigravity-cli/settings.json" ] || cp "$SCRIPT_DIR/config/antigravity/settings.json" "$HOME/.gemini/antigravity-cli/settings.json" 2>/dev/null || true
+"$HOME/.local/bin/agys" --sync 2>/dev/null || true
 
 # Clean up legacy redundant autostart entries to prevent duplicate daemons
 rm -f "$HOME/.config/autostart/autotile.desktop" \
